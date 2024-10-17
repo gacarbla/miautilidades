@@ -1,8 +1,13 @@
-import { ChatInputCommandInteraction, Client, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, GuildChannel, Role, SlashCommandBuilder } from "discord.js";
 import settings from "../settings.js";
+import ChatInputCommand from "../lib/classes/chatInputCommand.js";
+import client from "../index.js";
+import PodcastManageTime from "../lib/classes/PodcastManageTime.js";
 
-const podcastCommand = {
-    data: new SlashCommandBuilder()
+const podcastCommand = new ChatInputCommand({
+    name: "podcast",
+    roles: ["822611433463611433", "1274474611253186704"],
+    builder: new SlashCommandBuilder()
         .setName('podcast')
         .setDescription('Gestión de podcast')
         .addSubcommand(sub =>
@@ -25,68 +30,163 @@ const podcastCommand = {
                 .setName('resume')
                 .setDescription('Reanuda el podcast')
         ),
+})
 
-    /**
-     * 
-     * @param {ChatInputCommandInteraction} interaction 
-     * @returns 
-     */
-    async execute(interaction, client) {
+var podcasts = []
+
+podcastCommand.setExecution((interaction) => {
+    return new Promise(async (resolve) => {
         const subcommand = interaction.options.getSubcommand()
         if (!interaction.isRepliable()) return console.error("No se puede contestar")
-        await interaction.deferReply()
+        await interaction.deferReply({ephemeral: true})
+        const chat = interaction.guild.channels.cache.find(ch => ch.id === settings.podcast.chat);
+        const audienceRole = interaction.guild.roles.cache.find(role => role.id === settings.podcast.audienceRoleId)
         switch (subcommand) {
             case "start":
+                if (!isPodcastIndexed(interaction.guildId)) {
+                    const podcastTime = new PodcastManageTime(interaction.guildId)
+                    podcastTime.actions.start()
+                    podcasts.push(podcastTime)
+                    await setChannelPermission(chat, audienceRole, true)
+                    logPodcast("START", interaction.member.id)
+                    await interaction.editReply({ content: "Podcast iniciado. ¡Chat abierto!" })
+                } else {
+                    await interaction.editReply({ content: "¡Ya hay un podcast registrado!" })
+                }
                 break;
             case "end":
+                if (isPodcastIndexed(interaction.guildId)) {
+                    let pc = getIndexedPodcast(interaction.guildId)
+                    pc.actions.end()
+                    await setChannelPermission(chat, audienceRole, false)
+                    logPodcast("END", interaction.member.id)
+                    logStats(pc)
+                    await interaction.editReply({ content: "Podcast finalizado. ¡Chat cerrado!" })
+                } else {
+                    await interaction.editReply({ content: "No se ha encontrado ningún podcast activo en el servidor..." })
+                }
                 break;
             case "pause":
+                if (isPodcastIndexed(interaction.guildId)) {
+                    let pc = getIndexedPodcast(interaction.guildId)
+                    if (!pc.active) return await interaction.editReply({ content: "El podcast ya está pausado o terminado." })
+                    pc.actions.pause()
+                    await interaction.editReply({ content: "Podcast pausado, el tiempo se ha detenido." })
+                    logPodcast("PAUSE", interaction.member.id)
+                } else {
+                    await interaction.editReply({ content: "No se ha encontrado ningún podcast activo en el servidor..." })
+                }
                 break;
             case "resume":
+                if (isPodcastIndexed(interaction.guildId)) {
+                    let pc = getIndexedPodcast(interaction.guildId)
+                    if (!pc.paused) return await interaction.editReply({ content: "El podcast no está pausado." })
+                    pc.actions.resume()
+                    logPodcast("RESUME", interaction.member.id)
+                    await interaction.editReply({ content: "Podcast retomado, el tiempo vuelve a contar." })
+                } else {
+                    await interaction.editReply({ content: "No se ha encontrado ningún podcast activo en el servidor..." })
+                }
                 break;
             default:
-                interaction.editReply({content: "Error al conectar con el comando", ephemeral: true})
+                interaction.editReply({ content: "Error al conectar con el comando" })
                 break;
         }
-    }
-}
+        resolve()
+    })
+})
+
+/**
+ * 
+ * @param {string} guildId 
+ * @returns {boolean}
+ */
+const isPodcastIndexed = (guildId) => (podcasts.filter(p => p.guildId == guildId).length > 0)
+
+/**
+ * @param {string} guildId
+ * @returns {PodcastManageTime}
+ */
+const getIndexedPodcast = (guildId) => (podcasts.filter(p => p.guildId == guildId)[0])
+
+/**
+ * 
+ * @param {GuildChannel} channel 
+ * @param {Role} role 
+ * @param {boolean} canWrite 
+ * @returns
+ */
+const setChannelPermission = (channel, role, canWrite) => {
+    return new Promise(async resolve => {
+        try {
+            await channel.permissionOverwrites.edit(role, {
+                SendMessages: canWrite
+            })
+        } catch (e) {
+            console.error(e)
+        } finally {
+            resolve()
+        }
+    })
+};
 
 /**
  * 
  * @param {"START"|"END"|"PAUSE"|"RESUME"} action 
- * @param {string} authorId 
- * @param {Client} client 
+ * @param {string} authorId
  */
-function logPodcast(action, authorId, client) {
+function logPodcast(action, authorId) {
     const channel = client.channels.cache.get(settings.podcast.logs);
     if (!channel) {
         console.error('No se encontró el canal. Verifica la ID.');
         return;
     }
 
-    var _action = ""
+    const actionsMap = {
+        END: "finalizado",
+        PAUSE: "pausado",
+        RESUME: "reanudado",
+        START: "iniciado"
+    };
 
-    switch (action) {
-        case "END":
-            _action = "finalizado"
-            break;
-        case "PAUSE":
-            _action = "pausado"
-            break;
-        case "RESUME":
-            _action = "reanudado"
-            break;
-        case "START":
-            _action = "iniciado"
-            break;
-    }
+    const text_action = actionsMap[action];
 
     const embed = new EmbedBuilder()
-        .setDescription(`<@${authorId}> ha ${_action} el podcast.`)
+        .setDescription(`<@${authorId}> ha ${text_action} el podcast.`)
         .setTimestamp();
 
     channel.send({ embeds: [embed] })
         .catch(console.error);
+}
+
+/**
+ * 
+ * @param {PodcastManageTime} podcast 
+ */
+function logStats(podcast) {
+    let time = podcast.actualtime
+    const channel = client.channels.cache.get(settings.podcast.logs);
+    if (!channel) {
+        console.error('No se encontró el canal. Verifica la ID.');
+        return;
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle('Estadísticas del podcast')
+        .addFields([
+            {name: 'Inicio', value: `<t:${Math.floor(podcast.firstStart/1000)}:f>`, inline: true},
+            { name: 'Fin', value: `<t:${Math.floor(Date.now()/1000)}:f>`, inline: true },
+            { name: '** **', value: '** **', inline: false },
+            { name: 'Pausas', value: `\`${podcast.pausedTimes}\``, inline: true },
+            { name: 'Duración', value: `\`${time.formatted}\``, inline: true }
+        ])
+        .setColor(0x5865f2)
+        .setTimestamp();
+
+    channel.send({ embeds: [embed] })
+        .catch(console.error);
+
+    podcasts = podcasts.filter(p => p.guildId != podcast.guildId);
 }
 
 export default podcastCommand

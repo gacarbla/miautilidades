@@ -19,7 +19,7 @@ const loadCommands = (commandsPath) => {
         for (const file of commandFiles) {
             const filePath = path.join(commandsPath, file);
             const command = await import(`file://${filePath}`);
-            commands.push(command.default.data.toJSON());
+            commands.push(command.default.builder.toJSON());
         }
         resolve(commands);
     })
