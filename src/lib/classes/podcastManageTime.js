@@ -8,17 +8,24 @@ export default class PodcastManageTime {
         this.listen()
     }
 
-    listenerTimes = [1, 45, 110, 120, 130]
+    listenerTimes = [45, 110, 120, 130]
 
     listen() {
         setInterval(() => {
-            this.listenerTimes.forEach(t => {
-                if ( Math.floor(this.actualtime.ms/(1000*60)) > t && Math.floor(this.lastlog/(1000*60)) < t ) {
+            let m = Math.floor(this.actualtime.ms / (1000 * 60)),
+                l = Math.floor(this.lastlog / (1000 * 60))
+            for (let i = 0; i < this.listenerTimes.length; i++) {
+                let t = this.listenerTimes[i]
+                if (m >= t && l < t) {
                     this.lastlog = Date.now()
-                    this.listener(this.actualtime.ms)
+                    try {
+                        this.listener(this.actualtime.ms)
+                    } catch (error) {
+                        console.error(error.message)
+                    }
                 }
-            })
-        }, 10000)
+            }
+        }, 5000)
     }
 
     /**
@@ -37,7 +44,7 @@ export default class PodcastManageTime {
      * @param {number} t 
      */
     listener(t) {
-        console.log(`Han pasado ${Math.floor(t/(1000*60))} minutos`)
+        console.log(`Han pasado ${Math.floor(t / (1000 * 60))} minutos`)
     }
 
     /**
