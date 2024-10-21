@@ -15,18 +15,24 @@ export default class ChatInputCommand {
      */
     constructor(data) {
         this.data = data
+        this.addPrecondition("Roles", (interaction)=>{
+            var permitted = false
+            this.data.roles.forEach(r => {
+                if (interaction.member.roles.cache.has(r)) permitted = true
+            })
+            return permitted
+        })
     }
 
-    data = {}
-    preconditions = new Collection()
+    preconditions = []
     get builder() { return this.data.builder }
 
     /**
      * @param {string} preconditionName
-     * @param {function(ChatInputCommandInteraction): void} interaction
+     * @param {function(ChatInputCommandInteraction): void} precondition
      */
     addPrecondition(preconditionName, precondition) {
-        this.preconditions.set(preconditionName, precondition)
+        this.preconditions.push({name: preconditionName, run: precondition})
     }
 
     /**
@@ -36,11 +42,12 @@ export default class ChatInputCommand {
      */
     checkPreconditions(interaction) {
         var success = [], failed = []
-        this.preconditions.map(p=>p.name).forEach(p=>{
-            (this.preconditions.get(p)(interaction)?success:failed).push(p)
+        this.preconditions.forEach(p=>{
+            let passed = p.run(interaction);
+            passed?success.push(p.name):failed.push(p.name)
         })
-        if (failed.map(p=>p).length > 0) return (false, success, failed)
-        return (true, success, failed)
+        if (failed.map(p=>p).length > 0) return {allowed: false, success, failed}
+        return {allowed: true, success, failed}
     }
 
     /**
@@ -64,9 +71,9 @@ export default class ChatInputCommand {
      * @param {ChatInputCommandInteraction} interaction 
      */
     execute(interaction) {
-        let {permited, passedPreconditions, failedPreconditions} = this.checkPreconditions(interaction)
-        if (permited) {
-            console.log(`Precondiciones no cumplidas:\n - ${failedPreconditions.join("\n - ")}${'\n'*3}`)
+        let result = this.checkPreconditions(interaction)
+        if (!result.allowed) {
+            interaction.reply({content: "No cumples las condiciones para utilizar este comando.\n```\nCondiciones no cumplidas:\n - "+result.failed.join("\n - ")+"\n```", ephemeral: true})
         } else {
             this.execution(interaction)
         }

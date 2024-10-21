@@ -5,20 +5,46 @@ export default class PodcastManageTime {
      */
     constructor(guildId) {
         this.guildId = guildId
+        this.listen()
     }
+
+    listenerTimes = [1, 45, 110, 120, 130]
 
     listen() {
         setInterval(() => {
-            this.listener(this.actualtime)
-        }, 500)
+            this.listenerTimes.forEach(t => {
+                if ( Math.floor(this.actualtime.ms/(1000*60)) > t && Math.floor(this.lastlog/(1000*60)) < t ) {
+                    this.lastlog = Date.now()
+                    this.listener(this.actualtime.ms)
+                }
+            })
+        }, 10000)
     }
 
-    listener() {
-        time
+    /**
+     * @param {...number} times 
+     */
+    setListenerTimes(...times) {
+        this.listenerTimes = times
     }
 
+    addListenerTimes(...times) {
+        this.listenerTimes.push(...times)
+    }
+
+    /**
+     * 
+     * @param {number} t 
+     */
+    listener(t) {
+        console.log(`Han pasado ${Math.floor(t/(1000*60))} minutos`)
+    }
+
+    /**
+     * @param {function(number): void} f 
+     */
     setListener(f) {
-
+        this.listener = f
     }
 
     guildId = ""

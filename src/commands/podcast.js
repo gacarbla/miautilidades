@@ -2,7 +2,7 @@ import { EmbedBuilder, GuildChannel, Role, SlashCommandBuilder } from "discord.j
 import settings from "../settings.js";
 import ChatInputCommand from "../lib/classes/chatInputCommand.js";
 import client from "../index.js";
-import PodcastManageTime from "../lib/classes/PodcastManageTime.js";
+import PodcastManageTime from "../lib/classes/podcastManageTime.js";
 
 const podcastCommand = new ChatInputCommand({
     name: "podcast",
@@ -40,16 +40,23 @@ podcastCommand.setExecution((interaction) => {
         if (!interaction.isRepliable()) return console.error("No se puede contestar")
         await interaction.deferReply({ephemeral: true})
         const chat = interaction.guild.channels.cache.find(ch => ch.id === settings.podcast.chat);
-        const audienceRole = interaction.guild.roles.cache.find(role => role.id === settings.podcast.audienceRoleId)
+        const audienceRole = interaction.guild.roles.cache.find(role => role.id === settings.podcast.audienceRole)
         switch (subcommand) {
             case "start":
                 if (!isPodcastIndexed(interaction.guildId)) {
                     const podcastTime = new PodcastManageTime(interaction.guildId)
+                    podcastTime.setListener(logTime)
                     podcastTime.actions.start()
                     podcasts.push(podcastTime)
-                    await setChannelPermission(chat, audienceRole, true)
                     logPodcast("START", interaction.member.id)
-                    await interaction.editReply({ content: "Podcast iniciado. ¡Chat abierto!" })
+                    try {
+                        await setChannelPermission(chat, audienceRole, true)
+                        await interaction.editReply({ content: "Podcast iniciado. ¡Chat abierto!" })
+                    } catch (e) {
+                        console.error(e)
+                        let embed = new EmbedBuilder().setColor(0xed4245).setDescription('```\n'+e.name+'\n```')
+                        await interaction.editReply({ content: "Podcast iniciado. Error al abrir el chat.", embeds: [embed] })
+                    }
                 } else {
                     await interaction.editReply({ content: "¡Ya hay un podcast registrado!" })
                 }
@@ -123,12 +130,32 @@ const setChannelPermission = (channel, role, canWrite) => {
                 SendMessages: canWrite
             })
         } catch (e) {
-            console.error(e)
+            throw e
         } finally {
             resolve()
         }
     })
 };
+
+/**
+ * @param {number} time
+ */
+function logTime(time) {
+    const channel = client.channels.cache.get(settings.podcast.timelogs);
+    if (!channel) {
+        console.error('No se encontró el canal. Verifica la ID.');
+        return;
+    }
+
+    let min = Math.floor(time/(1000*60))
+
+    const embed = new EmbedBuilder()
+        .setDescription(`El podcast lleva activo \`${min}\` minutos.`)
+        .setTimestamp();
+
+    channel.send({ embeds: [embed] })
+        .catch(console.error);
+}
 
 /**
  * 
