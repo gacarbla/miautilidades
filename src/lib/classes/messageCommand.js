@@ -32,7 +32,7 @@ export default class MessageCommand {
      * @param {function(Message): void} precondition
      */
     addPrecondition(preconditionName, precondition) {
-        this.preconditions.set(preconditionName, precondition)
+        this.preconditions.push({ name: preconditionName, run: precondition });
     }
 
     /**
@@ -40,13 +40,14 @@ export default class MessageCommand {
      * @param {Message} message 
      * @returns 
      */
-    checkPreconditions(message) {
+    checkPreconditions = (message) => {
         var success = [], failed = []
-        this.preconditions.map(p=>p.name).forEach(p=>{
-            (this.preconditions.get(p)(message)?success:failed).push(p)
-        })
-        if (failed.map(p=>p).length > 0) return (false, success, failed)
-        return (true, success, failed)
+        this.preconditions.forEach(p => {
+            let passed = p.run(interaction);
+            passed ? success.push(p.name) : failed.push(p.name);
+        });
+        if (failed.length > 0) return { allowed: false, success, failed }
+        return { allowed: true, success, failed };
     }
 
     /**
@@ -54,13 +55,30 @@ export default class MessageCommand {
      * @param {Message} message 
      */
     execution(message) {
-        message.reply({content: "Este comando no se encuentra disponible."})
+        message.reply({ content: "Este comando no se encuentra disponible." })
     }
 
+    /**
+     * 
+     * @param {Message} message 
+     */
     execute(message) {
-        let {permited, passedPreconditions, failedPreconditions} = this.checkPreconditions(message)
-        if (permited) {
-            console.log(`Precondiciones no cumplidas:\n - ${failedPreconditions.join("\n - ")}${'\n'*3}`)
+        const result = this.checkPreconditions(message)
+        if (!result.allowed) {
+            message.reply({
+                content: "No cumples las condiciones para utilizar este comando.\n```\nCondiciones no cumplidas:\n - " + result.failed.join("\n - ") + "\n```",
+            }).then((m) => {
+                setTimeout(() => {
+                    try {
+                        if (m.deletable) {
+                            m.delete()
+                        }
+                        if (message.deletable) {
+                            message.delete()
+                        }
+                    } catch { }
+                }, 3000)
+            });
         } else {
             this.execution(message)
         }

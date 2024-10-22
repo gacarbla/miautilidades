@@ -20,16 +20,14 @@ export async function execute(interaction) {
         }
     } else if (interaction.isAutocomplete()) {
 
-    } else if (interaction.isMessageContextMenuCommand()) {
+    } else if (interaction.isContextMenuCommand()) {
         const menu = client.contextMenus.get(interaction.commandName)
         if (!menu) return;
         try {
-            await menu.execute(interaction, client);
+            await menu.execute(interaction);
         } catch (error) {
             console.error(error);
             await interaction.reply({ content: 'Hubo un error al ejecutar este comando.', ephemeral: true });
         }
-    } else if (interaction.isUserContextMenuCommand()) {
-
     }
 }

@@ -1,4 +1,4 @@
-import { ContextMenuCommandInteraction, Collection, ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType } from "discord.js";
+import { ContextMenuCommandInteraction, Collection, ContextMenuCommandBuilder, UserContextMenuCommandInteraction } from "discord.js";
 
 /**
  * @typedef {Object} Data
@@ -7,12 +7,11 @@ import { ContextMenuCommandInteraction, Collection, ContextMenuCommandBuilder, M
  * @property {string[]} blacklistedChannels Canales en los que no está permitido utilizar el comando
  * @property {string[]} roles Roles con acceso al comando
  * @property {string[]} blacklistedRoles Roles sin acceso al comando
- * @property {string[]} messageAuthorID ID del autor del mensaje para verificar si puede ejecutar el comando
+ * @property {string[]} targetUser ID del autor del mensaje para verificar si puede ejecutar el comando
  * @property {ContextMenuCommandBuilder} builder
- * @property {boolean} ephemeralReply
  */
 
-export default class MessageContextMenuCommand {
+export default class UserContextMenuCommand {
     /**
      * 
      * @param {Data} data 
@@ -21,14 +20,11 @@ export default class MessageContextMenuCommand {
         this.data = data;
         this.preconditions = new Collection();
 
-        this.data.builder.setType(ApplicationCommandType.Message)
-
-        // Agregar precondiciones predeterminadas (canales, roles, messageAuthor)
         this.addPrecondition("AllowedChannels", (interaction) => this.checkAllowedChannels(interaction));
         this.addPrecondition("BlacklistedChannels", (interaction) => this.checkBlacklistedChannels(interaction));
         this.addPrecondition("AllowedRoles", (interaction) => this.checkAllowedRoles(interaction));
         this.addPrecondition("BlacklistedRoles", (interaction) => this.checkBlacklistedRoles(interaction));
-        this.addPrecondition("MessageAuthor", (interaction) => this.checkMessageAuthor(interaction));
+        this.addPrecondition("TargetUser", (interaction) => this.checkTargetUser(interaction));
     }
 
     data = {};
@@ -41,7 +37,7 @@ export default class MessageContextMenuCommand {
     /**
      * Añade una precondición personalizada
      * @param {string} preconditionName
-     * @param {function(MessageContextMenuCommandInteraction): boolean} precondition
+     * @param {function(UserContextMenuCommandInteraction): boolean} precondition
      */
     addPrecondition(preconditionName, precondition) {
         this.preconditions.set(preconditionName, precondition);
@@ -49,7 +45,7 @@ export default class MessageContextMenuCommand {
 
     /**
      * Verifica las precondiciones asignadas
-     * @param {MessageContextMenuCommandInteraction} interaction 
+     * @param {UserContextMenuCommandInteraction} interaction 
      * @returns {Object}
      */
     checkPreconditions(interaction) {
@@ -72,7 +68,7 @@ export default class MessageContextMenuCommand {
 
     /**
      * Ejecuta la función asignada al comando
-     * @param {function(MessageContextMenuCommandInteraction): Promise<void>} f
+     * @param {function(UserContextMenuCommandInteraction): Promise<void>} f
      */
     setExecution(f) {
         this.execution = f;
@@ -80,33 +76,33 @@ export default class MessageContextMenuCommand {
 
     /**
      * Ejecución por defecto si no se asigna una personalizada
-     * @param {MessageContextMenuCommandInteraction} interaction 
+     * @param {UserContextMenuCommandInteraction} interaction 
      */
     async execution(interaction) {
-        await interaction.editReply({ content: "Este comando no se encuentra disponible.", ephemeral: true });
+        await interaction.reply({ content: "Este comando no se encuentra disponible.", ephemeral: true });
     }
 
     /**
      * Ejecuta el comando, verificando precondiciones
-     * @param {MessageContextMenuCommandInteraction} interaction 
+     * @param {UserContextMenuCommandInteraction} interaction 
      */
     async execute(interaction) {
-        await interaction.deferReply({ephemeral: this.data.ephemeralReply == true})
         try {
-            const result = this.checkPreconditions(interaction);
+            const { allowed, successPreconditions, failedPreconditions } = this.checkPreconditions(interaction);
 
-            if (!result.allowed) {
-                interaction.reply({
-                    content: "No cumples las condiciones para utilizar este comando.\n```\nCondiciones no cumplidas:\n - " + result.failed.join("\n - ") + "\n```",
+            if (!allowed) {
+                await interaction.reply({
+                    content: `No cumples las condiciones para utilizar este comando.\n\nPrecondiciones no cumplidas:\n - ${failedPreconditions.join("\n - ")}`,
                     ephemeral: true
                 });
+                throw new Error(`Fallo en precondiciones: ${failedPreconditions.join(", ")}`);
             }
 
             // Si todas las precondiciones pasan, se ejecuta el comando
             await this.execution(interaction);
         } catch (error) {
             console.error(`Error al ejecutar el comando: ${error.message}`);
-            throw new Error(`Error ejecutando el comando: ${error.stack}`);
+            throw new Error(`Error ejecutando el comando: ${error.message}`);
         }
     }
 
@@ -124,7 +120,7 @@ export default class MessageContextMenuCommand {
 
     /**
      * Verifica si el canal está en la lista negra
-     * @param {MessageContextMenuCommandInteraction} interaction
+     * @param {UserContextMenuCommandInteraction} interaction
      * @returns {boolean}
      */
     checkBlacklistedChannels(interaction) {
@@ -136,7 +132,7 @@ export default class MessageContextMenuCommand {
 
     /**
      * Verifica si el usuario tiene los roles permitidos
-     * @param {MessageContextMenuCommandInteraction} interaction
+     * @param {UserContextMenuCommandInteraction} interaction
      * @returns {boolean}
      */
     checkAllowedRoles(interaction) {
@@ -148,7 +144,7 @@ export default class MessageContextMenuCommand {
 
     /**
      * Verifica si el usuario tiene roles en la lista negra
-     * @param {MessageContextMenuCommandInteraction} interaction
+     * @param {UserContextMenuCommandInteraction} interaction
      * @returns {boolean}
      */
     checkBlacklistedRoles(interaction) {
@@ -160,12 +156,12 @@ export default class MessageContextMenuCommand {
 
     /**
      * Verifica si el autor del mensaje es el autorizado
-     * @param {MessageContextMenuCommandInteraction} interaction
+     * @param {UserContextMenuCommandInteraction} interaction
      * @returns {boolean}
      */
-    checkMessageAuthor(interaction) {
-        if (this.data.messageAuthorID) {
-            return this.data.messageAuthorID.includes(interaction.targetMessage.author.id);
+    checkTargetUser(interaction) {
+        if (this.data.targetUser) {
+            return this.data.targetUser.includes(interaction.targetUser.id);
         }
         return true;
     }

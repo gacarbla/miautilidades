@@ -13,36 +13,64 @@ const podcastCommand = new ChatInputCommand({
         .addSubcommand(sub =>
             sub
                 .setName('start')
+                .setNameLocalizations({
+                    "es-419": "iniciar",
+                    "es-ES": "iniciar"
+                })
                 .setDescription('Inicia el podcast')
         )
         .addSubcommand(sub =>
             sub
                 .setName('end')
+                .setNameLocalizations({
+                    "es-419": "finalizar",
+                    "es-ES": "finalizar"
+                })
                 .setDescription('Termina el podcast')
         )
         .addSubcommand(sub =>
             sub
                 .setName('pause')
+                .setNameLocalizations({
+                    "es-419": "pausar",
+                    "es-ES": "pausar"
+                })
                 .setDescription('Pausa el podcast')
         )
         .addSubcommand(sub =>
             sub
                 .setName('resume')
+                .setNameLocalizations({
+                    "es-419": "reanudar",
+                    "es-ES": "reanudar"
+                })
                 .setDescription('Reanuda el podcast')
         )
         .addSubcommand(sub =>
             sub
-                .setName('subir')
+                .setName('bringup')
+                .setNameLocalizations({
+                    "es-419": "subir",
+                    "es-ES": "subir"
+                })
                 .setDescription('Sube a un usuario bajo ciertas condiciones')
                 .addUserOption(option =>
                     option
-                        .setName('usuario')
+                        .setName('user')
+                        .setNameLocalizations({
+                            "es-419": "usuario",
+                            "es-ES": "usuario"
+                        })
                         .setDescription('Usuario al que subir')
                         .setRequired(true)
                 )
                 .addIntegerOption(option =>
                     option
-                        .setName('minutos')
+                        .setName('minutes')
+                        .setNameLocalizations({
+                            "es-419": "minutos",
+                            "es-ES": "minutos"
+                        })
                         .setDescription('Máximo de minutos que el usuario dispone')
                         .setMinValue(1)
                         .setMaxValue(30)
@@ -52,7 +80,7 @@ const podcastCommand = new ChatInputCommand({
         /*
         .addSubcommand(sub =>
             sub
-                .setName('subir-aleatorio')
+                .setName('random-bringup')
                 .setDescription('Sube a un usuario aleatorio bajo ciertas condiciones')
                 .addIntegerOption(option =>
                     option
@@ -107,14 +135,15 @@ podcastCommand.setExecution(async (interaction) => {
             case "resume":
                 await handleResume(interaction);
                 break;
-            case "subir":
+            case "bringup":
                 await handleSubir(interaction);
                 break;
             default:
                 throw new Error("Subcomando no válido.");
         }
     } catch (error) {
-        throw new Error(`Error ejecutando el comando podcast:\n\`\`\`${error.stack}\`\`\``);
+        console.log(error.stack)
+        throw new Error(`Error ejecutando el comando podcast:\n\`\`\`${error.message}\`\`\``);
     }
 });
 
@@ -127,7 +156,7 @@ async function handleStart(interaction, chat, audienceRole) {
         podcastTime.setListener(logTime);
         podcastTime.actions.start();
         podcasts.push(podcastTime);
-        logPodcast("START", interaction.member.id);
+        logPodcast("START", interaction);
 
         try {
             await setChannelPermission(chat, audienceRole, true);
@@ -153,7 +182,7 @@ async function handleEnd(interaction, chat, audienceRole) {
         } catch (error) {
             throw new Error(`Podcast finalizado, pero no se pudo cerrar el chat.`);
         }
-        logPodcast("END", interaction.member.id);
+        logPodcast("END", interaction);
         logStats(pc);
         await interaction.editReply({ content: "Podcast finalizado. ¡Chat cerrado!" });
         console.log("Podcast finalizado exitosamente.");
@@ -173,7 +202,7 @@ async function handlePause(interaction) {
         }
         pc.actions.pause();
         await interaction.editReply({ content: "Podcast pausado, el tiempo se ha detenido." });
-        logPodcast("PAUSE", interaction.member.id);
+        logPodcast("PAUSE", interaction);
         console.log("Podcast pausado exitosamente.");
     } else {
         throw new Error("Intento de pausar un podcast cuando no hay ninguno activo.");
@@ -190,7 +219,7 @@ async function handleResume(interaction) {
             throw new Error("Intento de reanudar un podcast que no está pausado.");
         }
         pc.actions.resume();
-        logPodcast("RESUME", interaction.member.id);
+        logPodcast("RESUME", interaction);
         await interaction.editReply({ content: "Podcast retomado, el tiempo vuelve a contar." });
         console.log("Podcast reanudado exitosamente.");
     } else {
@@ -203,49 +232,30 @@ async function handleResume(interaction) {
  * @param {ChatInputCommandInteraction} interaction 
  */
 async function handleSubir(interaction) {
-    const user = interaction.options.getUser('usuario', true);
-    const member = interaction.options.getMember('usuario', true);
-    var minutes = interaction.options.getInteger('minutos', false);
+    const user = interaction.options.getUser('user', true);
+    const member = interaction.options.getMember('user', true);
+    var minutes = interaction.options.getInteger('minutes', false);
     const stageChannel = interaction.guild.channels.cache.find(ch => `${ch.id}` === settings.podcast[`${interaction.guildId}`].stage);
-    const notifyChannel = interaction.guild.channels.cache.get(settings.podcast[`${interaction.guildId}`].chat);
-
+    
     if (!stageChannel) {
         throw new Error('No se encontró el canal de escenario en este servidor.');
-    }
-
-    if (!notifyChannel) {
-        throw new Error('No se encontró el canal de notificación.');
     }
 
     const isInStage = member.voice.channel && member.voice.channel.id == stageChannel.id;
 
     if (isInStage) {
         await member.voice.setSuppressed(false);
-        await interaction.editReply({ content: `${user.username} ha sido subido al escenario${minutes ? ` por ${minutes} minutos` : ``}.` });
+        customLogPodcast(`${interaction.member} ha enviado una solicitud a ${member} para subir al escenario${minutes?` por ${minutes} minutos`:''}.`, interaction)
+        await interaction.editReply({ content: `Se ha enviado una invitación a ${user}${minutes ? ` válida por ${minutes} minutos` : ``}.` });
     } else {
         return await interaction.editReply({ content: `${user.username} no está en el canal de escenario.` });
     }
 
     if (!minutes) return
 
-    const interval = setInterval(async () => {
-        const member = await interaction.guild.members.fetch(user.id);
-        minutes--;
-        let suppress = member.voice.suppress;
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log(`Estado: ${suppress?'Entre el público':'En escenario'}`)
-        if (minutes === 1 && member.voice.channel && member.voice.channel.id === stageChannel.id && suppress === false) {
-            await notifyChannel.send(`<@${user.id}>, tu tiempo en el escenario está por finalizar. Te queda 1 minuto.`);
-        }
-        else if (minutes === 0) {
-            if (member.voice.channel && member.voice.channel.id === stageChannel.id && suppress === false) {
-                await notifyChannel.send(`<@${user.id}> ha sido bajado automáticamente del escenario.`);
-            }
-            await member.voice.setSuppressed(true);
-            clearInterval(interval);
-        }
-    }, 60000);
-    
+    setTimeout(async () => {
+        await member.voice.setSuppressed(true);
+    }, minutes * 60 * 1000)
 }
 
 /**
@@ -293,7 +303,7 @@ function logTime(time) {
 /**
  * Log de las acciones del podcast
  */
-function logPodcast(action, authorId) {
+function logPodcast(action, interaction) {
     const channel = client.channels.cache.get(settings.podcast[`${interaction.guildId}`].logs);
     if (!channel) {
         throw new Error(`No se encontró el canal de logs del podcast.\nLos cambios se han efectuado satisfactoriamente.`);
@@ -307,7 +317,25 @@ function logPodcast(action, authorId) {
     };
 
     const embed = new EmbedBuilder()
-        .setDescription(`<@${authorId}> ha ${actionsMap[action]} el podcast.`)
+        .setDescription(`${interaction.member} ha ${actionsMap[action]} el podcast.`)
+        .setTimestamp();
+
+    channel.send({ embeds: [embed] }).catch(error => {
+        throw new Error(`Error al enviar el log del podcast:\n\`\`\`${error.message}\`\`\``);
+    });
+}
+
+/**
+ * Custom log
+ */
+function customLogPodcast(message, interaction) {
+    const channel = client.channels.cache.get(settings.podcast[`${interaction.guildId}`].logs);
+    if (!channel) {
+        throw new Error(`No se encontró el canal de logs del podcast.\nLos cambios se han efectuado satisfactoriamente.`);
+    }
+
+    const embed = new EmbedBuilder()
+        .setDescription(message)
         .setTimestamp();
 
     channel.send({ embeds: [embed] }).catch(error => {

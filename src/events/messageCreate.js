@@ -25,8 +25,8 @@ export async function execute(message) {
         if (command) {
             command.execute(message)
         } else {
-            let cmds = client.msgCommands.filter(c => c.data.alias.includes(commandname)).map(m=>m.execute)
-            if (cmds.length > 0) cmds[0](message)
+            let cmds = client.msgCommands.filter(c => c.data.alias.includes(commandname)).map(m=>m)
+            if (cmds.length > 0) cmds[0].execute(message)
         }
     }
 }
