@@ -1,4 +1,3 @@
-import { ChatInputCommandInteraction, Client } from "discord.js";
 import client from "../index.js";
 
 export const name = 'interactionCreate';
@@ -6,7 +5,7 @@ export const once = false;
 
 /**
  * 
- * @param {ChatInputCommandInteraction} interaction
+ * @param {import("discord.js").Interaction} interaction
  * @returns 
  */
 export async function execute(interaction) {
@@ -19,5 +18,18 @@ export async function execute(interaction) {
             console.error(error);
             await interaction.reply({ content: 'Hubo un error al ejecutar este comando.', ephemeral: true });
         }
-    } else if (interaction.isAutocomplete()) {}
+    } else if (interaction.isAutocomplete()) {
+
+    } else if (interaction.isMessageContextMenuCommand()) {
+        const menu = client.contextMenus.get(interaction.commandName)
+        if (!menu) return;
+        try {
+            await menu.execute(interaction, client);
+        } catch (error) {
+            console.error(error);
+            await interaction.reply({ content: 'Hubo un error al ejecutar este comando.', ephemeral: true });
+        }
+    } else if (interaction.isUserContextMenuCommand()) {
+
+    }
 }

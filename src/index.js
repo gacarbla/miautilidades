@@ -25,6 +25,7 @@ const client = new Client({
 client.commands = new Collection();
 client.msgCommands = new Collection();
 client.msgEvents = new Collection();
+client.contextMenus = new Collection();
 
 // Función para cargar módulos asíncronamente
 async function loadModules() {
@@ -56,6 +57,15 @@ async function loadModules() {
         const filePath = path.join(messageEventsPath, file);
         const event = await import(`file://${filePath}`);
         client.msgEvents.set(event.default.data.name, event.default);
+    }
+
+    const contextMenusPath = path.join(__dirname, 'contextMenu');
+    const contextMenusFiles = fs.readdirSync(contextMenusPath).filter(file => file.endsWith('.js'));
+
+    for (const file of contextMenusFiles) {
+        const filePath = path.join(contextMenusPath, file);
+        const menu = await import(`file://${filePath}`);
+        client.contextMenus.set(menu.default.data.name, menu.default)
     }
 
     // Cargar eventos del cliente

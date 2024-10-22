@@ -89,7 +89,7 @@ export default class ChatInputCommand {
             try {
                 await this.execution(interaction);
             } catch (error) {
-                console.error(`Error durante la ejecución del comando "${this.data.name}":`, error.name);
+                console.error(`Error durante la ejecución del comando "${this.data.name}":`, error);
                 let embed = new EmbedBuilder()
                     .setTitle("ERROR")
                     .setDescription(error.message)
