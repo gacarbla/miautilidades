@@ -18,8 +18,16 @@ const loadCommands = (commandsPath) => {
         const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
         for (const file of commandFiles) {
             const filePath = path.join(commandsPath, file);
-            const command = await import(`file://${filePath}`);
-            commands.push(command.default.builder.toJSON());
+            const commandfile = await import(`file://${filePath}`);
+            const command = commandfile.default
+            if (command.builderVersion == 1) {
+                commands.push(command.builder.toJSON());
+            } else if (command.builderVersion == 2) {
+                const builders = command.builders.filter(b=>["slashCommand", "contextMenu"].includes(b.type))
+                builders.forEach(b=>{
+                    commands.push(b.builder.toJSON())
+                })
+            }
         }
         resolve(commands);
     })

@@ -12,6 +12,9 @@ import { ContextMenuCommandInteraction, Collection, ContextMenuCommandBuilder, U
  */
 
 export default class UserContextMenuCommand {
+    
+    builderVersion = 1
+
     /**
      * 
      * @param {Data} data 

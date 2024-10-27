@@ -13,6 +13,9 @@ import { ContextMenuCommandInteraction, Collection, ContextMenuCommandBuilder, M
  */
 
 export default class MessageContextMenuCommand {
+    
+    builderVersion = 1
+
     /**
      * 
      * @param {Data} data 

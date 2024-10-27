@@ -9,6 +9,9 @@
 import { Collection, Message } from "discord.js"
 
 export default class MessageCommand {
+    
+    builderVersion = 1
+
     /**
      * @param {Data} data 
      */

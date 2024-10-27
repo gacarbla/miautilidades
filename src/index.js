@@ -35,8 +35,13 @@ async function loadModules() {
 
     for (const file of commandFiles) {
         const filePath = path.join(commandsPath, file);
-        const command = await import(`file://${filePath}`);
-        client.commands.set(command.default.data.name, command.default);
+        const commandfile = await import(`file://${filePath}`);
+        const command = commandfile.default
+        if (command.builderVersion == 1) {
+            client.commands.set(command.data.name, command);
+        } else if (command.builderVersion == 2) {
+            client.commands.set(command.name, command);
+        }
     }
 
     // Cargar comandos de mensaje

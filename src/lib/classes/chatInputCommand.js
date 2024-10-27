@@ -11,6 +11,9 @@ import { ChatInputCommandInteraction, Collection, EmbedBuilder, SlashCommandBuil
  */
 
 export default class ChatInputCommand {
+    
+    builderVersion = 1
+
     /**
      * 
      * @param {Data} data 
