@@ -22,10 +22,8 @@ const client = new Client({
     ]
 });
 
-client.commands = new Collection();
-client.msgCommands = new Collection();
+client.interactions = new Collection();
 client.msgEvents = new Collection();
-client.contextMenus = new Collection();
 
 // Función para cargar módulos asíncronamente
 async function loadModules() {
@@ -37,21 +35,7 @@ async function loadModules() {
         const filePath = path.join(commandsPath, file);
         const commandfile = await import(`file://${filePath}`);
         const command = commandfile.default
-        if (command.builderVersion == 1) {
-            client.commands.set(command.data.name, command);
-        } else if (command.builderVersion == 2) {
-            client.commands.set(command.name, command);
-        }
-    }
-
-    // Cargar comandos de mensaje
-    const messageCommandsPath = path.join(__dirname, 'message', 'commands');
-    const messageCommandFiles = fs.readdirSync(messageCommandsPath).filter(file => file.endsWith('.js'));
-
-    for (const file of messageCommandFiles) {
-        const filePath = path.join(messageCommandsPath, file);
-        const command = await import(`file://${filePath}`);
-        client.msgCommands.set(command.default.data.name, command.default);
+        client.interactions.set(command.name, command);
     }
 
     // Cargar eventos de mensaje

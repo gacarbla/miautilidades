@@ -1,3 +1,23 @@
+import {
+    Message,
+    ChatInputCommandInteraction,
+    ModalSubmitInteraction,
+    RoleSelectMenuInteraction,
+    ChannelSelectMenuInteraction,
+    StringSelectMenuInteraction,
+    UserSelectMenuInteraction,
+    ContextMenuCommandInteraction,
+    ButtonInteraction,
+    SlashCommandBuilder,
+    ContextMenuCommandBuilder,
+    StringSelectMenuBuilder,
+    RoleSelectMenuBuilder,
+    ButtonBuilder,
+    UserSelectMenuBuilder,
+    ChannelSelectMenuBuilder,
+    ModalBuilder,
+} from "discord.js";
+
 /**
  *  @typedef  { "message" | "slashCommand" | "contextMenu" | "button" | "stringSelect" | "roleSelect" | "channelSelect" | "userSelect" | "modal" } InteractionType
  * 
@@ -9,6 +29,8 @@
  *  @property { string[] } blacklistedChannels
  *  @property { string[] } whitelistedRoles
  *  @property { string[] } blacklistedRoles
+ *  @property { string[] } whitelistedUsers
+ *  @property { string[] } blacklistedUsers
  * 
  *  @typedef  { Object } InteractionBuilderObject
  *  @property { InteractionType } type
@@ -24,9 +46,24 @@
  *  @property { number   } cooldown
  */
 
+/**
+ * @typedef {Object} ExecutionObject
+ * @property { function(Message): Promise<void> } message
+ * @property { function(ChatInputCommandInteraction): Promise<void> } slashCommand
+ * @property { function(ContextMenuCommandInteraction): Promise<void> } contextMenu
+ * @property { function(ButtonInteraction): Promise<void> } button
+ * @property { function(StringSelectMenuInteraction): Promise<void> } stringSelect
+ * @property { function(RoleSelectMenuInteraction): Promise<void> } roleSelect
+ * @property { function(ChannelSelectMenuInteraction): Promise<void> } channelSelect
+ * @property { function(UserSelectMenuInteraction): Promise<void> } userSelect
+ * @property { function(ModalSubmitInteraction): Promise<void> } modal
+ */
+
 class InteractionBuilder {
 
     builderVersion = 2
+
+    builders = []
 
     /**
      * 
@@ -38,10 +75,6 @@ class InteractionBuilder {
         this.description = data.description;
         this.type = data.type;
         this.preconditions = data.preconditions || [];
-        this.builders = data.builders || [];
-
-        // Validar los builders según el tipo
-        this.validateBuilders();
     }
 
     /**
@@ -50,20 +83,20 @@ class InteractionBuilder {
      */
     validateBuilders() {
         const requiredBuilders = {
-            "slashCommand": "SlashCommandBuilder",
-            "message": null, // No specific builder needed for message commands
-            "contextMenu": "ContextMenuCommandBuilder", // A hypothetical builder for context menus
-            "button": "ButtonBuilder", // Button commands need a ButtonBuilder
-            "stringSelect": "StringSelectMenuBuilder",
-            "roleSelect": "RoleSelectMenuBuilder",
-            "userSelect": "UserSelectMenuBuilder",
-            "channelSelect": "ChannelSelectMenuBuilder",
-            "modal": "ModalBuilder" // Hypothetical builder for modals
+            "slashCommand": SlashCommandBuilder,
+            "message": null,
+            "contextMenu": ContextMenuCommandBuilder,
+            "button": ButtonBuilder,
+            "stringSelect": StringSelectMenuBuilder,
+            "roleSelect": RoleSelectMenuBuilder,
+            "userSelect": UserSelectMenuBuilder,
+            "channelSelect": ChannelSelectMenuBuilder,
+            "modal": ModalBuilder
         };
         this.builders.forEach(builderData => {
             const { type, builder } = builderData;
-            if (requiredBuilders[type] && !(builder instanceof global[requiredBuilders[type]])) {
-                throw new Error(`El tipo de interacción "${type}" requiere un constructor de tipo "${requiredBuilders[type]}".`);
+            if (requiredBuilders[type] && !(builder instanceof requiredBuilders[type])) {
+                throw new Error(`El tipo de interacción "${type}" requiere un constructor de tipo "${requiredBuilders[type].name}".`);
             }
         });
     }
@@ -79,6 +112,7 @@ class InteractionBuilder {
                 .setName(this.name)
                 .setDescription(this.description)
         this.builders.push({type, builder})
+        this.validateBuilders();
     }
 
     /**
@@ -100,15 +134,15 @@ class InteractionBuilder {
         const allowed = this.checkPreconditions(interactionType, context);
         if (!allowed) {
             context.reply({
-                content: "Careces de permiso para utilizar este comando",
+                content: "Careces de permiso para utilizar esto",
                 ephemeral: true
             });
         } else {
             try {
                 if (this.execution[interactionType]) {
-                    await this.execution[interactionType](context); // Ejecutar la función asignada
+                    await this.execution[interactionType](context);
                 } else {
-                    await this.defaultExecution(context); // Ejecutar la función predeterminada si no hay una personalizada
+                    await this.defaultExecution(context);
                 }
             } catch (error) {
                 console.error(`Error durante la ejecución del comando "${this.name}":`, error);
@@ -163,6 +197,11 @@ class InteractionBuilder {
     async defaultExecution(context) {
         context.reply({ content: "Este comando no se encuentra disponible.", ephemeral: true });
     }
+
+    /**
+     * @type {ExecutionObject}
+     */
+    execution = {}
 
     /**
      * Validates if any precondition block is fully satisfied.
