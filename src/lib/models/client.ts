@@ -1,7 +1,9 @@
 import { Client, ClientOptions } from "discord.js";
 import Collection from "./collection";
-import { MiauSlashCommand } from "./interactions";
+import { MiauButton, MiauChannelSelect, MiauContextMenu, MiauMessageCommand, MiauRoleSelect, MiauSlashCommand, MiauStringSelect, MiauUserSelect } from "./interactions";
 import Utils from "../utils";
+import MiauModal from "./interactions/modal";
+import MiauAutocomplete from "./interactions/autocomplete";
 
 class MiauClient extends Client {
     constructor(params:ClientOptions) {
@@ -30,15 +32,16 @@ class MiauClient extends Client {
     }
 
     interactions = {
-        message: [],
+        message: new Collection<MiauMessageCommand>(),
         slashCommands: new Collection<MiauSlashCommand>(),
-        contextMenus: [],
-        buttons: [],
-        modals: [],
-        stringSelect: [],
-        roleSelect: [],
-        channelSelect: [],
-        userSelect: []
+        contextMenus: new Collection<MiauContextMenu>(),
+        buttons: new Collection<MiauButton>(),
+        modals: new Collection<MiauModal>(),
+        stringSelects: new Collection<MiauStringSelect>(),
+        roleSelects: new Collection<MiauRoleSelect>(),
+        channelSelects: new Collection<MiauChannelSelect>(),
+        userSelects: new Collection<MiauUserSelect>(),
+        autocompletes: new Collection<MiauAutocomplete>()
     }
 
     utils = new Utils()

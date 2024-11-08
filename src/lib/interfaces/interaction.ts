@@ -13,8 +13,6 @@ export interface MiauButtonDefaultData {
     customId: string,
     style: ButtonStyle,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField
 }
 
 export interface MiauSelectDefaultData {
@@ -23,8 +21,6 @@ export interface MiauSelectDefaultData {
     customId: string,
     type: SelectMenuType,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     maxOptions: number,
     minOptions: number,
     options?: StringSelectMenuOptionBuilder[]
@@ -36,8 +32,6 @@ export interface MiauUserSelectDefaultData {
     customId: string,
     type: SelectMenuType,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     maxOptions: number,
     minOptions: number
 }
@@ -48,8 +42,6 @@ export interface MiauChannelSelectDefaultData {
     customId: string,
     type: SelectMenuType,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     maxOptions: number,
     minOptions: number
 }
@@ -60,8 +52,6 @@ export interface MiauRoleSelectDefaultData {
     customId: string,
     type: SelectMenuType,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     maxOptions: number,
     minOptions: number
 }
@@ -72,8 +62,6 @@ export interface MiauMentionableSelectDefaultData {
     customId: string,
     type: SelectMenuType,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     maxOptions: number,
     minOptions: number
 }
@@ -84,8 +72,6 @@ export interface MiauStringSelectDefaultData {
     customId: string,
     type: SelectMenuType,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     maxOptions: number,
     minOptions: number,
     options: StringSelectMenuOptionBuilder[]
@@ -95,8 +81,6 @@ export interface MiauSlashCommandDefaultData {
     name: string,
     description: string,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField
 }
 
 export interface MiauMessageCommandDefaultData {
@@ -104,8 +88,6 @@ export interface MiauMessageCommandDefaultData {
     alias: string[],
     description: string,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField
 }
 
 export interface MiauModalDefaultData {
@@ -114,8 +96,6 @@ export interface MiauModalDefaultData {
     customId: string,
     description: string,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     inputs: TextInputBuilder[]
 }
 
@@ -124,7 +104,5 @@ export interface MiauContextMenuDefaultData {
     label: string,
     description: string,
     isRestricted: boolean,
-    botPermissions: PermissionsBitField,
-    userPermissions: PermissionsBitField,
     type: ContextMenuCommandType
 }
