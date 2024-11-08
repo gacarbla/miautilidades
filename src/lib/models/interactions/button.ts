@@ -9,11 +9,7 @@ export default class MiauButton extends MiauInteraction {
         this.data = data;
     }
 
-    /**
-     * Método `execute` inicial, que se sobrescribirá usando `setExecution`.
-     * @param context - Contexto de la interacción de botón.
-     */
-    override async execute(context: ButtonInteraction): Promise<void> {
+    override async execution(context: ButtonInteraction): Promise<void> {
         await context.reply({ content: "Botón presionado, pero no se ha definido acción específica." });
     }
 
@@ -22,6 +18,6 @@ export default class MiauButton extends MiauInteraction {
      * @param fun - Nueva función de ejecución que manejará el evento del botón.
      */
     override setExecution(f: (context: ButtonInteraction) => Promise<void>): void {
-        this.execute = f;
+        this.execution = f;
     }
 }

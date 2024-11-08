@@ -1,3 +1,5 @@
+import ConsoleController from "./console"
+
 class Counter {
     private x:number = 0
 
@@ -22,6 +24,7 @@ class Counter {
 
 export default class Utils {
     Counter:typeof Counter = Counter
+    console:ConsoleController = new ConsoleController()
 }
 
 export {

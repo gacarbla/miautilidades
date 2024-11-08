@@ -9,11 +9,7 @@ export default class MiauSelect extends MiauInteraction {
         this.data = data;
     }
 
-    /**
-     * Método `execute` inicial, que se sobrescribirá usando `setExecution`.
-     * @param context - Contexto de la interacción de botón.
-     */
-    override async execute(context: AnySelectMenuInteraction): Promise<void> {
+    override async execution(context: AnySelectMenuInteraction): Promise<void> {
         await context.reply({ content: "Select Menu respondido, pero no se ha definido acción específica." });
     }
 
@@ -22,6 +18,6 @@ export default class MiauSelect extends MiauInteraction {
      * @param fun - Nueva función de ejecución que manejará el evento del botón.
      */
     override setExecution(f: (context: AnySelectMenuInteraction) => Promise<void>): void {
-        this.execute = f;
+        this.execution = f;
     }
 }
