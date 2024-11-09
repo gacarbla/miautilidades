@@ -5,7 +5,7 @@ import Emoji from "../../enum/emojis";
 
 export default abstract class MiauInteraction {
     private preconditions:Preconditions[]|undefined
-    private noPermissionMenssage:string|undefined
+    noPermissionMenssage:string|undefined
 
     constructor() {}
 
@@ -51,9 +51,9 @@ export default abstract class MiauInteraction {
         return results.some(result => result);
     }
 
-    abstract execution(context: Message | Interaction): Promise<void>;
+    abstract execution?(context: Message | Interaction): Promise<void>;
 
-    setExecution(fun: (context: Message | Interaction) => Promise<void>): void {
+    setExecution?(fun: (context: Message | Interaction) => Promise<void>): void {
         (this.execution as (context: Message | Interaction) => Promise<void>) = fun;
     }
 

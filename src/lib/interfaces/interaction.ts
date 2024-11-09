@@ -13,6 +13,7 @@ export interface MiauButtonDefaultData {
     customId: string,
     style: ButtonStyle,
     isRestricted: boolean,
+    emoji: string
 }
 
 export interface MiauSelectDefaultData {

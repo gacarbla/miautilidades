@@ -1,4 +1,4 @@
-enum Emojis {
+enum Emoji {
     // General Status
     SUCCESS = "✅",
     ERROR = "❌",
@@ -82,4 +82,4 @@ enum Emojis {
     ALERT = "🚨"
 }
 
-export default Emojis
+export default Emoji

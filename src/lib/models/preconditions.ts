@@ -30,21 +30,17 @@ interface preconditionData {
     function: (context: Message | Interaction) => Promise<boolean>;
 }
 
-interface PreconditionMap {
-    [key: string]: preconditionData;
-}
-
 
 export default class Preconditions {
     private list: preconditionData[] = [];
     private data: preconditionConstructorData;
     
     // Precondiciones disponibles como plantillas para añadir
-    static templates:PreconditionMap = {
+    static templates = {
         authorIsAdmin: {
             name: 'Author is admin',
             applyTo: ['slashCommand', 'message'],
-            function: async (context) => {
+            function: async (context: Message | Interaction) => {
                 const member = context instanceof Message ? context.member : context.guild?.members.cache.get(context.user.id);
                 return member ? member.permissions.has(PermissionsBitField.Flags.Administrator) : false;
             }
@@ -52,7 +48,7 @@ export default class Preconditions {
         userHasManageMessagesPermission: {
             name: 'User has manage messages permission',
             applyTo: ['message'],
-            function: async (context) => {
+            function: async (context: Message | Interaction) => {
                 const member = context instanceof Message ? context.member : context.guild?.members.cache.get(context.user.id);
                 return member ? member.permissions.has(PermissionsBitField.Flags.ManageMessages) : false;
             }
@@ -60,7 +56,7 @@ export default class Preconditions {
         isUsedInAGuild: {
             name: 'Command is used in a guild',
             applyTo: ['message', 'slashCommand', 'button', 'modal'],
-            function: async (context) => {
+            function: async (context: Message | Interaction) => {
                 return Boolean(context.guild);
             }
         }
