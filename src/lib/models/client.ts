@@ -5,30 +5,91 @@ import Utils from "../utils";
 import MiauModal from "./interactions/modal";
 import MiauAutocomplete from "./interactions/autocomplete";
 
+interface MiauClientOptions {
+    interactionsFolder:string
+    indexedFileExtensions:string[]
+    defaultPrefix:string
+    regExpPrefix:RegExp
+    replyToMention:boolean
+    ignoredFolderNames?:string[]
+    ignoredFileNames?:string[]
+}
+
+interface MiauClientEventsObject {
+    bot: {
+        join: any[];
+        leave: any[];
+    };
+    users: {
+        joinGuild: any[];
+        leaveGuild: any[];
+        bannedFromGuild: any[];
+        kickedFromGuild: any[];
+        voice: {
+            join: any[];
+            leave: any[];
+            disconnect: any[];
+            move: any[];
+            moved: any[];
+            muted: any[];
+            unmuted: any[];
+            deafened: any[];
+            undeafened: any[];
+            serverMuted: any[];
+            serverUnmuted: any[];
+            serverDeafened: any[];
+            serverUndeafened: any[];
+            startVideo: any[];
+            endVideo: any[];
+        };
+    };
+    messages: {
+        created: any[];
+        deleted: any[];
+        edited: any[];
+    };
+}
+
 class MiauClient extends Client {
-    constructor(params:ClientOptions) {
-        super(params)
+    private params:MiauClientOptions
+    constructor(djs_params:ClientOptions, mjs_params:MiauClientOptions) {
+        super(djs_params)
+        this.params = mjs_params
     }
 
-    events = {
-        messageCreate: [],
-        voice: {
+    events:MiauClientEventsObject = {
+        bot: {
             join: [],
-            leave: [],
-            disconnect: [],
-            move: [],
-            moved: [],
-            muted: [],
-            unmuted: [],
-            deafened: [],
-            undeafened: [],
-            serverMuted: [],
-            serverUnmuted: [],
-            serverDeafened: [],
-            serverUndeafened: [],
-            startVideo: [],
-            endVideo: []
-        }
+            leave: []
+        },
+        users: {
+            joinGuild: [],
+            leaveGuild: [],
+            bannedFromGuild: [],
+            kickedFromGuild: [],
+            voice: {
+                join: [],
+                leave: [],
+                disconnect: [],
+                move: [],
+                moved: [],
+                muted: [],
+                unmuted: [],
+                deafened: [],
+                undeafened: [],
+                serverMuted: [],
+                serverUnmuted: [],
+                serverDeafened: [],
+                serverUndeafened: [],
+                startVideo: [],
+                endVideo: []
+            }
+        },
+        messages: {
+            created: [],
+            deleted: [],
+            edited: []
+        },
     }
 
     interactions = {

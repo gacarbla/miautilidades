@@ -1,20 +1,107 @@
 import { ButtonBuilder, ButtonInteraction, ButtonStyle, Interaction, Message } from "discord.js";
 import MiauInteraction from "./interaction";
-import { MiauButtonDefaultData } from "../../interfaces/interaction";
 import Emoji from "../../enum/emojis";
 import client from "../../..";
-import { MiauButtonBuildData } from "../../interfaces/button";
+import { MiauButtonBuildData, MiauButtonDefaultData } from "../../interfaces/button";
 
+/**
+ * > ** **
+ * ### ¿Qué es esto?
+ * Clase de construcción y manejo de botones.
+ * 
+ * Esta clase no requiere de especificaciones del constructor o similares.
+ * > ** **
+ * ### Utilización
+ * Si creas un botón y quieres que el cliente lo detecte, recuerda
+ * exportarlo como default en el archivo, y asegúrate de que el
+ * fichero se encuentra en algún subdirectorio de la carpeta matriz de
+ * interacciones.
+ * > ** **
+ * ### Ejemplo archivo de declaración
+ * ```ts
+ * // src/interactions/buttons/test.ts
+ * const exampleButton = new MiauButton({
+ *     name: 'Test button',
+ *     customId: 'test',
+ *     emoji: '⚠️',
+ *     style: ButtonStyle.Primary,
+ *     label: 'Test',
+ *     isRestricted: false
+ * })
+ * 
+ * exampleButton.setExecution(interaction => interaction.reply({content:'Botón presionado', ephemeral: true}))
+ * 
+ * export default exampleButton
+ * ```
+ * > ** **
+ * ### Ejemplo construcción del botón
+ * ```ts
+ * // src/inetractions/slashCommands/test.js
+ * 
+ * // ...
+ * 
+ * const exampleButton = client.interactions.buttons.get('test').build({})
+ * interaction.reply({content: 'Botón de ejemplo', components: [exampleButton]})
+ * 
+ * // ...
+ * ```
+ */
 export default class MiauButton extends MiauInteraction {
     protected data: MiauButtonDefaultData
+
+    /**
+     * > ** **
+     * ### ¿Qué es esto?
+     * Este es el constructor del botón. En él, indicarás los datos necesarios
+     * para poder crearlo y manejarlo.
+     * > ** **
+     * ### Ejemplos de uso
+     * ```ts
+     * const exampleButton = new MiauButton({
+     *     name: 'Test button',
+     *     customId: 'test',
+     *     emoji: '⚠️',
+     *     style: ButtonStyle.Primary,
+     *     label: 'Test',
+     *     isRestricted: false
+     * })
+     * ```
+     * > ** **
+     * ### ⚠️ ¡¡Cuidado!!
+     * Un botón no puede contener en su id el símbolo `_`
+     */
     constructor(data: MiauButtonDefaultData) {
         super();
+        if (data.customId.includes("_")) throw new Error('La ID del botón no puede contener el símbolo \'_\'')
         this.data = data;
     }
 
+    /**
+     * > ** **
+     * ### ¿Qué es esto?
+     * Mensaje que se utiliza por defecto para indicar que el usuario no
+     * tiene los permisos apropiados para utilizar el botón.
+     */
     override noPermissionMenssage: string = Emoji.ERROR + "No tienes permisos para ejecutar este botón"
 
-    protected build(data: MiauButtonBuildData): ButtonBuilder {
+    /**
+     * > ** **
+     * ### ¿Qué es esto?
+     * Función que construye y devuelve el botón completamente listo
+     * para ser enviado.
+     * > ** **
+     * ### Ejemplos de uso
+     * ```ts
+     * const button_enabled = exampleButton.build({})
+     * const button_disabled = exampleButton.build({disabled: true, customEmoji: '🔒'})
+     * 
+     * context.reply({
+     *     content: 'Muestra de un botón habilitado y otro deshabilitado:',
+     *     components: [button_enabled, button_disabled]
+     * })
+     * ```
+     */
+    build(data: MiauButtonBuildData): ButtonBuilder {
         try {
             let id = this.data.customId;
 
@@ -54,15 +141,28 @@ export default class MiauButton extends MiauInteraction {
         }
     }
 
-    override async execution(context: ButtonInteraction): Promise<void> {
+    /**
+     * > ** **
+     * ### ¿Qué es esto?
+     * Función de ejecución.
+     * 
+     * Intenta no modificarla de forma directa, utiliza setExecution.
+     */
+    override async execution(context: ButtonInteraction, params: string[]): Promise<void> {
         await context.reply({ content: "Botón presionado, pero no se ha definido acción específica." });
     }
 
     /**
-     * Método para sobrescribir `execute` con una nueva función.
-     * @param fun - Nueva función de ejecución que manejará el evento del botón.
+     * > ** **
+     * ### ¿Qué es esto?
+     * Método para sobrescribir `execution` con una nueva función.
+     * > ** **
+     * ### Ejemplos de uso
+     * ```ts
+     * exampleButton.setExecution((interaction) => { interaction.reply({content: 'Botón presionado'}) })
+     * ```
      */
-    override setExecution(f: (context: ButtonInteraction) => Promise<void>): void {
+    override setExecution(f: (context: ButtonInteraction, params: string[]) => Promise<void>): void {
         this.execution = f;
     }
 }

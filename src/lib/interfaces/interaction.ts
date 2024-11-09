@@ -1,20 +1,9 @@
 import {
-    ButtonStyle,
     ContextMenuCommandType,
-    PermissionsBitField,
     SelectMenuType,
     StringSelectMenuOptionBuilder,
     TextInputBuilder
 } from "discord.js"
-
-export interface MiauButtonDefaultData {
-    name: string,
-    label: string,
-    customId: string,
-    style: ButtonStyle,
-    isRestricted: boolean,
-    emoji: string
-}
 
 export interface MiauSelectDefaultData {
     name: string,
@@ -80,13 +69,6 @@ export interface MiauStringSelectDefaultData {
 
 export interface MiauSlashCommandDefaultData {
     name: string,
-    description: string,
-    isRestricted: boolean,
-}
-
-export interface MiauMessageCommandDefaultData {
-    name: string,
-    alias: string[],
     description: string,
     isRestricted: boolean,
 }

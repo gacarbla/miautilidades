@@ -1,7 +1,7 @@
 const settings = {
-    botlogs: {
-        start: "1285000410515509331"
-    },
+    defaultPrefix: "gw!",
+    regExpPrefix: /(?:(?:hey|oye|@)?miautilidades)/i,
+    refreshInteractions: true,
     podcast: {
         "790289803219566633": { // GW
             stage: "1282925389705904158",
@@ -18,14 +18,6 @@ const settings = {
             timelogs: "",
             announcements: "",
             audienceRole: "1106242989879218176"
-        },
-        "892748318587879454": { // Staff GW
-            stage: "",
-            chat: "",
-            logs: "",
-            timelogs: "",
-            announcements: "",
-            audienceRole: ""
         }
     }
 }

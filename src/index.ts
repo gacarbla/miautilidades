@@ -1,11 +1,10 @@
 // /src/index.js
-import { GatewayIntentBits } from 'discord.js';
+import { GatewayIntentBits, Partials } from 'discord.js';
 import dotenv from 'dotenv';
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import MiauClient from './lib/models/client';
-import Collection from './lib/models/collection';
+import settings from './settings';
 
 dotenv.config();
 
@@ -20,15 +19,36 @@ const client = new MiauClient({
         GatewayIntentBits.GuildMessageTyping,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.AutoModerationConfiguration,
+        GatewayIntentBits.AutoModerationExecution,
+        GatewayIntentBits.GuildEmojisAndStickers,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessagePolls,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildPresences
+    ],
+    partials: [
+        Partials.Message,
+        Partials.GuildMember,
+        Partials.Channel,
+        Partials.Reaction,
+        Partials.User,
+        Partials.GuildScheduledEvent
     ]
+}, {
+    interactionsFolder: path.join(__dirname, 'interactions'),
+    indexedFileExtensions: ['*.ts'],
+    defaultPrefix: settings.defaultPrefix,
+    regExpPrefix: settings.regExpPrefix,
+    replyToMention: true
 });
 
 // Carga los archivos del bot en memoria
 await client.load()
 
 // Actualiza asíncronamente los comandos del bot seguún la configuración de settings.ts
-client.refreshInteractions()
+settings.refreshInteractions?client.refreshInteractions():undefined
 
 // Inicia el bot tras cargar todo lo oportuno
 client.login(process.env.TOKEN);

@@ -3,6 +3,18 @@ import Preconditions from "../preconditions";
 import client from "../../..";
 import Emoji from "../../enum/emojis";
 
+/**
+ * > ** **
+ * ### ¿Qué es esto?
+ * Constructor base de todas las interacciones.
+ * 
+ * No se recomienda su uso a no ser que sepas exactamente lo que haces.
+ * > ** **
+ * ### Ejemplos de uso
+ * ```ts
+ * const exampleInteraction = new MiauInteraction()
+ * ```
+ */
 export default abstract class MiauInteraction {
     private preconditions:Preconditions[]|undefined
     noPermissionMenssage:string|undefined
@@ -51,7 +63,7 @@ export default abstract class MiauInteraction {
         return results.some(result => result);
     }
 
-    abstract execution?(context: Message | Interaction): Promise<void>;
+    abstract execution?(context: Message | Interaction, params?:any): Promise<void>;
 
     setExecution?(fun: (context: Message | Interaction) => Promise<void>): void {
         (this.execution as (context: Message | Interaction) => Promise<void>) = fun;

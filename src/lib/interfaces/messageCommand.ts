@@ -1,5 +1,5 @@
 export interface MiauMessageCommandParam {
-    name: string,
+    customId: string,
     type: 'word' | 'text' | 'number' | 'int' | 'mention' | 'channel' | 'usermention' | 'rolemention'
     description: string
     required: boolean
@@ -8,4 +8,11 @@ export interface MiauMessageCommandParam {
     max?: number
     min_len?: number
     max_len?: number
+}
+
+export interface MiauMessageCommandDefaultData {
+    name: string,
+    alias: string[],
+    description: string,
+    isRestricted: boolean,
 }
