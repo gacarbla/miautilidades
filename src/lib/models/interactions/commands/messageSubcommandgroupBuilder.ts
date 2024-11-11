@@ -1,10 +1,11 @@
 import { Message } from "discord.js"
-import { MiauMessageCommandParam } from "../../../interfaces/messageCommand"
+import { MiauMessageCommandParam, MiauMessageCommandParamResponse } from "../../../interfaces/messageCommand"
 import MiauMessageSubcommandBuilder from "./messageSubcommandBuilder"
+import { ProtectedCollection } from "../../collection"
 
 class MiauMessageSubcommandgroupBuilder {
     constructor() { }
-    execution(message: Message): void {
+    execution(message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>): void {
 
     }
 
@@ -23,7 +24,7 @@ class MiauMessageSubcommandgroupBuilder {
         return this
     }
 
-    setExecution(f: (message: Message) => void): this {
+    setExecution(f: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => void): this {
         this.execution = f
         return this
     }

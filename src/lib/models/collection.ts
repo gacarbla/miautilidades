@@ -1,11 +1,5 @@
 import client from "../..";
-
-type CollectionItem<T> = {
-    id: string | number;
-    value: T;
-    createdAt: Date;
-    updatedAt: Date;
-};
+import { CollectionItem } from "../types/collection";
 
 class Collection<T = any> {
     private content: Record<string, CollectionItem<T>> = {};
@@ -61,6 +55,32 @@ class Collection<T = any> {
     getAll = (): CollectionItem<T>[] => {
         return Object.values(this.content);
     }
+
+    get protected(): ProtectedCollection<T> {
+        return new ProtectedCollection(this.content)
+    }
+}
+
+class ProtectedCollection<T = any> {
+    private content:Record<string, CollectionItem<T>> = {}
+    private count = new client.utils.Counter()
+    
+    constructor(data:Record<string, CollectionItem<T>>) {
+        this.content = data
+    }
+
+    private generateId = (): number => {
+        return this.count.next
+    }
+
+    get = (id: string): T | undefined => {
+        return this.content[id]?.value;
+    }
+
+    getAll = (): CollectionItem<T>[] => {
+        return Object.values(this.content);
+    }
 }
 
 export default Collection;
+export { Collection, ProtectedCollection }

@@ -29,7 +29,9 @@ import { MiauButtonBuildData, MiauButtonDefaultData } from "../../interfaces/but
  *     isRestricted: false
  * })
  * 
- * exampleButton.setExecution(interaction => interaction.reply({content:'Botón presionado', ephemeral: true}))
+ * exampleButton.setExecution(async (interaction, params) => {
+ *     interaction.reply({content:'Botón presionado', ephemeral: true})
+ * })
  * 
  * export default exampleButton
  * ```
@@ -146,10 +148,10 @@ export default class MiauButton extends MiauInteraction {
      * ### ¿Qué es esto?
      * Función de ejecución.
      * 
-     * Intenta no modificarla de forma directa, utiliza setExecution.
+     * Intenta no modificarla de forma directa, utiliza `setExecution`.
      */
     override async execution(context: ButtonInteraction, params: string[]): Promise<void> {
-        await context.reply({ content: "Botón presionado, pero no se ha definido acción específica." });
+        await context.reply({ content: "Botón presionado, pero no se ha definido acción específica.", ephemeral: true });
     }
 
     /**
@@ -159,7 +161,9 @@ export default class MiauButton extends MiauInteraction {
      * > ** **
      * ### Ejemplos de uso
      * ```ts
-     * exampleButton.setExecution((interaction) => { interaction.reply({content: 'Botón presionado'}) })
+     * exampleButton.setExecution(async (interaction, params) => {
+     *     await interaction.reply({content: 'Botón presionado'})
+     * })
      * ```
      */
     override setExecution(f: (context: ButtonInteraction, params: string[]) => Promise<void>): void {

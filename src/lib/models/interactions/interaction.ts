@@ -8,12 +8,7 @@ import Emoji from "../../enum/emojis";
  * ### ¿Qué es esto?
  * Constructor base de todas las interacciones.
  * 
- * No se recomienda su uso a no ser que sepas exactamente lo que haces.
- * > ** **
- * ### Ejemplos de uso
- * ```ts
- * const exampleInteraction = new MiauInteraction()
- * ```
+ * **No se recomienda su uso.**
  */
 export default abstract class MiauInteraction {
     private preconditions:Preconditions[]|undefined

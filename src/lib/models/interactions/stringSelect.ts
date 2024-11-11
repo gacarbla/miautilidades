@@ -1,19 +1,16 @@
-import { StringSelectMenuInteraction } from "discord.js";
-import { MiauStringSelectDefaultData } from "../../interfaces/interaction";
+import { ComponentType, StringSelectMenuInteraction } from "discord.js";
 import MiauSelect from "./select";
+import { MiauStringSelectDefaultData } from "../../interfaces/select";
 
 export default class MiauStringSelect extends MiauSelect {
-    protected data: MiauStringSelectDefaultData;
-    constructor(data: MiauStringSelectDefaultData) {
-        super(data);
-        this.data = data;
+    constructor(data: Omit<MiauStringSelectDefaultData, 'type'>) {
+        super({...data, type: ComponentType.StringSelect});
     }
-
-    override async execution(context: StringSelectMenuInteraction): Promise<void> {
+    override async execution(context: StringSelectMenuInteraction, params: string[]): Promise<void> {
         await context.reply({ content: "Menú de selección de canal respondido, pero no se ha definido acción específica." });
     }
 
-    override setExecution(f: (context: StringSelectMenuInteraction) => Promise<void>): void {
+    override setExecution(f: (context: StringSelectMenuInteraction, params: string[]) => Promise<void>): void {
         this.execution = f;
     }
 }
