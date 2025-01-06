@@ -1,5 +1,6 @@
 import MiauSlashSubcommandBuilder from "./slashSubcommandBuilder";
 import client from "../../../..";
+import { interactionNameRegEx } from "../../../constants/discord";
 
 class MiauSlashSubcommandgroupBuilder {
     constructor() { }
@@ -11,7 +12,6 @@ class MiauSlashSubcommandgroupBuilder {
     description: string | undefined = undefined
 
     setName(name: string): this {
-        const regex = /^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u;
         if (name.length < 1 || name.length > 32) {
             this.console.error(
                 ["error", "commandBuildError"],
@@ -25,7 +25,7 @@ class MiauSlashSubcommandgroupBuilder {
                 "Los comandos slash no aceptan mayúsculas en su nombre."
             );
         }
-        if (!regex.test(name)) {
+        if (!interactionNameRegEx.test(name)) {
             this.console.error(
                 ["error", "commandBuildError"],
                 "El nombre contiene caracteres inválidos."
@@ -58,8 +58,24 @@ class MiauSlashSubcommandgroupBuilder {
 
     addSubcommand(s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder):this {
         const subcommand = new MiauSlashSubcommandBuilder()
-        this.subcommands.push(s(subcommand))
+        const apply = s(subcommand)
+        if (!apply.test()) throw new Error("El subcomando parece estar mal declarado.")
+        if (this.subcommands.length >= 25) throw new Error("Este grupo ya tiene 25 subcomandos.")
+        this.subcommands.push(apply)
         return this
+    }
+
+    test():boolean {
+        return (
+            typeof this.name === 'string' &&
+            typeof this.description === 'string' &&
+            this.name.length > 1 &&
+            this.name.length <= 32 &&
+            this.description.length > 1 &&
+            this.description.length <= 100 &&
+            this.subcommands.length > 1 &&
+            this.subcommands.length <= 25
+        );
     }
 
     toJSON() {

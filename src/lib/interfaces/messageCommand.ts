@@ -1,7 +1,7 @@
 export interface MiauMessageCommandParam {
     customId: string
     name: string
-    type: 'word' | 'letter' | 'text' | 'number' | 'int' | 'mention' | 'channel' | 'usermention' | 'rolemention' | 'boolean'
+    type: 'word' | 'letter' | 'text' | 'number' | 'int' | 'mention' | 'channel' | 'usermention' | 'rolemention' | 'boolean' | 'membermention' | 'attachment'
     description: string
     required: boolean
     choices?: string[]
@@ -14,7 +14,7 @@ export interface MiauMessageCommandParam {
 export interface MiauMessageCommandParamResponse {
     type: 'word' | 'text' | 'number' | 'int' | 'mention' | 'channel' | 'usermention' | 'rolemention' | 'boolean' | 'letter'
     required: boolean
-    value: string | number | undefined
+    value: string | number | boolean | undefined
     choices?: string[]
 }
 

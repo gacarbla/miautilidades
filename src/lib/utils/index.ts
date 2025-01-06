@@ -1,4 +1,5 @@
 import ConsoleController from "./console"
+import InteractionUtils from "./interactions"
 
 class Counter {
     private x:number = 0
@@ -24,9 +25,11 @@ class Counter {
 
 export default class Utils {
     Counter:typeof Counter = Counter
+    Interactions:typeof InteractionUtils = InteractionUtils
     console:ConsoleController = new ConsoleController()
 }
 
 export {
-    Counter
+    Counter,
+    InteractionUtils
 }

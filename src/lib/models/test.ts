@@ -1,6 +1,7 @@
-import { MiauSlashCommand } from "./interactions";
+import { EmbedBuilder } from "discord.js";
+import { MiauMessageCommand, MiauSlashCommand } from "./interactions";
 
-export default new MiauSlashCommand({
+let b = new MiauSlashCommand({
     name: '',
     description: '',
     isRestricted: false
@@ -9,15 +10,15 @@ export default new MiauSlashCommand({
         subcommand
             .setName("")
             .setDescription("")
-            .setExecution(async (interaction)=>{
-                await interaction.deferReply({ephemeral:true})
+            .setExecution(async (interaction) => {
+                await interaction.deferReply({ ephemeral: true })
             })
     )
-    .addSubcommandgroup(subcommandgroup=>
+    .addSubcommandgroup(subcommandgroup =>
         subcommandgroup
             .setName("")
-            .setDesription("")
-            .addSubcommand(subcommand=>
+            .setDescription("")
+            .addSubcommand(subcommand =>
                 subcommand
                     .setName("")
                     .setDescription("")
@@ -29,8 +30,25 @@ export default new MiauSlashCommand({
                         type: 'letter',
                     })
                     .setExecution(async (interaction, params) => {
-                        await interaction.deferReply({ephemeral:true})
+                        await interaction.deferReply({ ephemeral: true })
                         let letra = params.get('letra-param')
                     })
             )
     )
+
+export default new MiauMessageCommand({
+    name: 'ping',
+    alias: ['pong'],
+    description: 'Comprueba la latencia del bot',
+    isRestricted: false
+}).build.setExecution((message, params) => {
+    const sendtime = message.createdTimestamp,
+        readtime = Date.now() - sendtime
+    let description = `Lectura: \`${readtime} ms\``
+    const embed = new EmbedBuilder()
+        .setTitle('¡Pong!').setDescription(description)
+    message.reply({ embeds: [embed] }).then((m) => {
+        const replytime = m.createdTimestamp
+        embed.setDescription(description + `\nRespuesta: \`${replytime} ms\``)
+    })
+})

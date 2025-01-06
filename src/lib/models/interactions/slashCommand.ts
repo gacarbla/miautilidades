@@ -11,8 +11,7 @@ export default class MiauSlashCommand extends MiauInteraction {
     }
 
     toJSON():Object {
-        const command = {}
-        return {}
+        return this.builder.toJSON(this.data) 
     }
 
     override async execution(context: ChatInputCommandInteraction): Promise<void> {

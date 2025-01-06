@@ -38,7 +38,7 @@ const client = new MiauClient({
     ]
 }, {
     interactionsFolder: path.join(__dirname, 'interactions'),
-    indexedFileExtensions: ['*.ts'],
+    indexedFileExtensions: ['*.js'],
     defaultPrefix: settings.defaultPrefix,
     regExpPrefix: settings.regExpPrefix,
     replyToMention: true
