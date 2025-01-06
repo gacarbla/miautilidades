@@ -8,6 +8,19 @@ export interface MiauSlashCommandDefaultData {
     isRestricted: boolean,
 }
 
+export interface MiauSlashCommandParam {
+    customId: string
+    name: string
+    type: 'word' | 'text' | 'number' | 'int' | 'mention' | 'channel' | 'usermention' | 'rolemention' | 'letter' | 'boolean'
+    description: string
+    required: boolean
+    choices?: string[]
+    min?: number
+    max?: number
+    min_len?: number
+    max_len?: number
+}
+
 export interface MiauModalDefaultData {
     name: string,
     title: string,

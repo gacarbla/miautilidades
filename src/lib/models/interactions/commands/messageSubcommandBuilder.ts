@@ -13,12 +13,12 @@ class MiauMessageSubcommandBuilder {
     name: string | undefined = undefined
     description: string | undefined = undefined
 
-    setName(name: string) {
+    setName(name: string):this {
         this.name = name
         return this
     }
 
-    setDescription(description: string) {
+    setDescription(description: string): this {
         this.description = description
         return this
     }
