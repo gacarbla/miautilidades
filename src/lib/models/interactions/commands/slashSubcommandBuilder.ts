@@ -17,6 +17,8 @@ class MiauSlashSubcommandBuilder {
     name: string | undefined = undefined
     description: string | undefined = undefined
 
+    // TODO: Añadir posibilidad de establecer precondiciones para el subcomando.
+
     setName(name: string): this {
         if (name.length < 1 || name.length > 32) {
             this.console.error(
@@ -55,24 +57,28 @@ class MiauSlashSubcommandBuilder {
                 ["commandBuildError"], 
                 "La descripción no puede exceder los 100 caracteres."
             );
-            description = description.substring(0, 100); // Recorta a 100 caracteres si es necesario
+            description = description.substring(0, 100);
         }
+        // TODO: Verifica que los caracteres empleados son válidos.
         this.description = description
         return this
     }
 
     setExecution(f: (interaction: ChatInputCommandInteraction, params: ProtectedCollection<MiauSlashCommandParam>) => void): this {
+        // TODO: Verificación de que la función es válida.
         this.execution = f
         return this
     }
 
     addParam(param: MiauSlashCommandParam): this {
         if (!client.utils.Interactions.verify.param.slash(param)) throw new Error("Parámetro con estructura incorrecta.")
+        // TODO: Verificación de que no hay ya un parámetro con ese nombre.
         this.params.push(param)
         return this
     }
 
     test():boolean {
+        // TODO: Crear verificación que compruebe si los parámetros están bien montados.
         return (
             typeof this.name === 'string' &&
             typeof this.description === 'string' &&
@@ -85,6 +91,7 @@ class MiauSlashSubcommandBuilder {
     
 
     toJSON() {
+        // TODO: Actualizar para utilizar la función `test`
         if (!this.name || !this.description) {
             this.console.error(["error", "commandBuildError"], "Los campos de nombre y descripción son obligatorios.")
             throw new Error("Los campos de nombre y descripción son obligatorios.")
@@ -108,7 +115,11 @@ class MiauSlashSubcommandBuilder {
             this.console.error(['error', 'commandBuildError'], 'Dos o más parámetros tienen la misma ID.')
             throw new Error("Dos o más parámetros tienen la misma ID.")
         }
+
+        // TODO: Terminar
     }
+
+    // TODO: Permitir exportar para comando help
 }
 
 export default MiauSlashSubcommandBuilder

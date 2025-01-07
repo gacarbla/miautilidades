@@ -9,6 +9,8 @@ class MiauSlashCommandBuilder {
     subcommands:MiauSlashSubcommandBuilder[] = []
     subcommandgroups:MiauSlashSubcommandgroupBuilder[] = []
 
+    // TODO: Añadir posibilidad de añadir precondiciones al comando.
+
     addSubcommand(s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder): this {
         const subcommand = new MiauSlashSubcommandBuilder()
         const apply = s(subcommand)
@@ -37,7 +39,10 @@ class MiauSlashCommandBuilder {
         return this
     }
 
+    // TODO: Añadir función `test` que verifique que el comando es válido.
+
     toJSON(data:MiauSlashCommandDefaultData) {
+        // TODO: Añadir verificación con función `test` para certificar que el comando es válido antes de exportarlo.
         return {
             name: data.name,
             description: data.description,
@@ -45,6 +50,8 @@ class MiauSlashCommandBuilder {
             subcommandgroups: this.subcommandgroups.map(s => s.toJSON()),
         }
     }
+
+    // TODO: Permitir exportar para comando help
 }
 
 export default MiauSlashCommandBuilder

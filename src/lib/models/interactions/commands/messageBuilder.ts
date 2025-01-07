@@ -18,6 +18,8 @@ class MiauMessageCommandBuilder {
     subcommands: MiauMessageSubcommandBuilder[] = []
     subcommandgroups: MiauMessageSubcommandgroupBuilder[] = []
 
+    // TODO: Permitir añadir precondiciones al comando.
+
     /**
      * > ** **
      * ### ¿Qué es esto?
@@ -33,6 +35,7 @@ class MiauMessageCommandBuilder {
      * ```
      */
     addParam(param: MiauMessageCommandParam): this {
+        // TODO: Verificar que el parámetro es correcto.
         this.params.push(param)
         return this
     }
@@ -54,6 +57,7 @@ class MiauMessageCommandBuilder {
      * Función que establece la ejecución designada al comando.
      */
     setExecution(f: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => void): this {
+        // TODO: Verificar que la función es correcta.
         this.execution = f
         return this
     }
@@ -65,6 +69,7 @@ class MiauMessageCommandBuilder {
      */
     addSubcommand(s: (subcommand: MiauMessageSubcommandBuilder) => MiauMessageSubcommandBuilder): this {
         const subcommand = new MiauMessageSubcommandBuilder()
+        // TODO: Antes de añadir el subcomando, verificar que es correcto.
         this.subcommands.push(s(subcommand))
         return this
     }
@@ -76,9 +81,12 @@ class MiauMessageCommandBuilder {
      */
     addSubcommandgroup(g: (subcommand: MiauMessageSubcommandgroupBuilder) => MiauMessageSubcommandgroupBuilder): this {
         const subcommandgroup = new MiauMessageSubcommandgroupBuilder()
+        // TODO: Antes de añadir el grupo, verificar que es correcto.
         this.subcommandgroups.push(g(subcommandgroup))
         return this
     }
+
+    // TODO: Añadir función `test` que permita comprobar si el comando cumple los requisitos para ser válido.
 }
 
 export default MiauMessageCommandBuilder

@@ -52,6 +52,7 @@ class MiauSlashSubcommandgroupBuilder {
             );
             description = description.substring(0, 100); // Recorta a 100 caracteres si es necesario
         }
+        // TODO: Añadir verificación de que los caracteres empleados son válidos.
         this.description = description;
         return this;
     }    
@@ -66,6 +67,7 @@ class MiauSlashSubcommandgroupBuilder {
     }
 
     test():boolean {
+        // TODO: Actualizar para verificar que todos los subcomandos son válidos.
         return (
             typeof this.name === 'string' &&
             typeof this.description === 'string' &&
@@ -79,6 +81,7 @@ class MiauSlashSubcommandgroupBuilder {
     }
 
     toJSON() {
+        // TODO: Actualizar para utilizar la función `test`
         if (!this.name || !this.description) {
             this.console.error(["error", "commandBuildError"], "Los campos de nombre y descripción son obligatorios.")
             throw new Error("Los campos de nombre y descripción son obligatorios.")
@@ -89,6 +92,8 @@ class MiauSlashSubcommandgroupBuilder {
             subcommands: this.subcommands.map(s => s.toJSON())
         }
     }
+
+    // TODO: Permitir exportar para comando help
 }
 
 export default MiauSlashSubcommandgroupBuilder
