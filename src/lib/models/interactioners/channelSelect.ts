@@ -1,6 +1,7 @@
-import { ChannelSelectMenuInteraction, ComponentType, StringSelectMenuOptionBuilder } from "discord.js";
+import { ChannelSelectMenuInteraction, ComponentType } from "discord.js";
 import MiauSelect from "./select";
 import { MiauChannelSelectDefaultData } from "../../interfaces/select";
+import { ProtectedCollection } from "../collection";
 
 /**
  * > ** **
@@ -64,11 +65,11 @@ export default class MiauChannelSelect extends MiauSelect {
         super({...data, type: ComponentType.ChannelSelect});
     }
 
-    override async execution(context: ChannelSelectMenuInteraction, params: string[]): Promise<void> {
+    override async execution(context: ChannelSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<void> {
         await context.reply({ content: "Menú de selección de canal respondido, pero no se ha definido acción específica.", ephemeral: true });
     }
 
-    override setExecution(f: (context: ChannelSelectMenuInteraction, params: string[]) => Promise<void>): void {
+    override setExecution(f: (context: ChannelSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
         this.execution = f;
     }
 }

@@ -63,14 +63,9 @@ class Collection<T = any> {
 
 class ProtectedCollection<T = any> {
     private content:Record<string, CollectionItem<T>> = {}
-    private count = new client.utils.Counter()
     
     constructor(data:Record<string, CollectionItem<T>>) {
         this.content = data
-    }
-
-    private generateId = (): number => {
-        return this.count.next
     }
 
     get = (id: string): T | undefined => {

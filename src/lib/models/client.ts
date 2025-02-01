@@ -2,8 +2,8 @@ import { Client, ClientOptions } from "discord.js";
 import Collection from "./collection";
 import { MiauButton, MiauChannelSelect, MiauContextMenu, MiauMessageCommand, MiauRoleSelect, MiauSlashCommand, MiauStringSelect, MiauUserSelect } from "./interactions";
 import Utils from "../utils";
-import MiauModal from "./interactions/modal";
-import MiauAutocomplete from "./interactions/autocomplete";
+import MiauModal from "./interactioners/modal";
+import MiauAutocomplete from "./interactioners/autocomplete";
 
 interface MiauClientOptions {
     interactionsFolder:string

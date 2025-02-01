@@ -3,6 +3,7 @@ import MiauInteraction from "./interaction";
 import Emoji from "../../enum/emojis";
 import client from "../../..";
 import { MiauButtonBuildData, MiauButtonDefaultData } from "../../interfaces/button";
+import Collection, { ProtectedCollection } from "../collection";
 
 /**
  * > ** **
@@ -84,7 +85,7 @@ export default class MiauButton extends MiauInteraction {
      * Mensaje que se utiliza por defecto para indicar que el usuario no
      * tiene los permisos apropiados para utilizar el botón.
      */
-    override noPermissionMenssage: string = Emoji.ERROR + "No tienes permisos para ejecutar este botón"
+    override noPermissionMenssage: string = Emoji.ERROR + "No tienes permisos para utilizar este botón."
 
     /**
      * > ** **
@@ -105,7 +106,7 @@ export default class MiauButton extends MiauInteraction {
      */
     build(data: MiauButtonBuildData): ButtonBuilder {
         try {
-            let id = this.data.customId;
+            var id = this.data.customId;
 
             try {
                 data.params?.forEach(param => {
@@ -150,8 +151,8 @@ export default class MiauButton extends MiauInteraction {
      * 
      * Intenta no modificarla de forma directa, utiliza `setExecution`.
      */
-    override async execution(context: ButtonInteraction, params: string[]): Promise<void> {
-        await context.reply({ content: "Botón presionado, pero no se ha definido acción específica.", ephemeral: true });
+    override async execution(context: ButtonInteraction, params: ProtectedCollection<string|number>): Promise<void> {
+        await context.reply({ content: "¡Qué bien, el botón funciona!\nPero... Mi programador no me ha dicho qué tengo que hacer ahora...", ephemeral: true });
     }
 
     /**
@@ -166,7 +167,7 @@ export default class MiauButton extends MiauInteraction {
      * })
      * ```
      */
-    override setExecution(f: (context: ButtonInteraction, params: string[]) => Promise<void>): void {
+    override setExecution(f: (context: ButtonInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
         this.execution = f;
     }
 }

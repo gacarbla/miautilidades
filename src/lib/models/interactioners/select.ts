@@ -1,6 +1,7 @@
-import { AnySelectMenuInteraction, ChannelSelectMenuBuilder, ComponentType, MentionableSelectMenuBuilder, RoleSelectMenuBuilder, SelectMenuBuilder, StringSelectMenuBuilder, UserSelectMenuBuilder } from "discord.js";
+import { AnySelectMenuInteraction, ChannelSelectMenuBuilder, ComponentType, MentionableSelectMenuBuilder, RoleSelectMenuBuilder, StringSelectMenuBuilder, UserSelectMenuBuilder } from "discord.js";
 import MiauInteraction from "./interaction";
 import { MiauSelectBuildData, MiauSelectDefaultData } from "../../interfaces/select";
+import { ProtectedCollection } from "../collection";
 
 type AnySelectMenuBuilder = StringSelectMenuBuilder | UserSelectMenuBuilder | RoleSelectMenuBuilder | MentionableSelectMenuBuilder | ChannelSelectMenuBuilder
 
@@ -82,7 +83,7 @@ export default class MiauSelect extends MiauInteraction {
      * 
      * Intenta no modificarla de forma directa, utiliza `setExecution`.
      */
-    override async execution(context: AnySelectMenuInteraction, params: string[]): Promise<void> {
+    override async execution(context: AnySelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<void> {
         await context.reply({ content: "Select Menu respondido, pero no se ha definido acción específica.", ephemeral: true });
     }
 
@@ -153,7 +154,7 @@ export default class MiauSelect extends MiauInteraction {
      * })
      * ```
      */
-    override setExecution(f: (context: AnySelectMenuInteraction, params: string []) => Promise<void>): void {
+    override setExecution(f: (context: AnySelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
         this.execution = f;
     }
 }

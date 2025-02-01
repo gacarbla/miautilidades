@@ -62,6 +62,20 @@ export interface MiauButtonBuildData {
      * Tampoco se pueden introducir strings que contengan el símbolo `_`, pues se confundiría con el separador.
      */
     params?: string[]
+
+    /**
+     * > ** **
+     * ### ¿Qué se debe colocar aquí?
+     * Estilo del botón en caso de querer alterarlo con respecto al diseño original.
+     * 
+     * > ** **
+     * 
+     * ### Ejemplos
+     * ```ts
+     * aternativaStyle: ButtonStyle.Primary // Establece el estilo a primario
+     * 
+     */
+    alternativeStyle?: ButtonStyle
 }
 
 export interface MiauButtonDefaultData {

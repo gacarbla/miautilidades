@@ -1,19 +1,16 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "node",
-        "lib": ["ESNext", "DOM"],
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "outDir": "./dist",
-        "rootDir": "src",
-        "resolveJsonModule": true,
-        "noEmitOnError": true,
-        "allowSyntheticDefaultImports": true
-    },
-    "include": ["src/**/*"],
-    "exclude": ["oldsrc/**/*", "node_modules"]
+	"extends": [
+		"@sapphire/ts-config",
+		"@sapphire/ts-config/extra-strict",
+		"@sapphire/ts-config/decorators"
+	],
+	"compilerOptions": {
+		"rootDir": "src",
+		"outDir": "dist",
+		"tsBuildInfoFile": "dist/.tsbuildinfo",
+	},
+	"include": [
+		"src",
+		"src/**/*.json"
+	]
 }

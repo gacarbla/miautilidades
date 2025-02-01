@@ -1,12 +1,18 @@
 {
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
-    "deploy": "node src/deploy.js",
-    "start": "node src/index.js"
+    "deploy": "node dist/deploy.js",
+    "start": "node dist/index.js",
+    "test": "node dist/lib/models/test.js",
+    "build": "tsc"
   },
   "dependencies": {
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "megadb": "^3.4.0"
+  },
+  "devDependencies": {
+    "@sapphire/ts-config": "^5.0.1",
+    "typescript": "^5.7.3"
   }
 }
