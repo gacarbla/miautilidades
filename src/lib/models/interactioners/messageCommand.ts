@@ -88,7 +88,11 @@ export default class MiauMessageCommand extends MiauInteraction {
      *     )
      * ```
      */
-    build = new MiauMessageCommandBuilder()
+    builder:MiauMessageCommandBuilder = new MiauMessageCommandBuilder()
+
+    toJSON():Object {
+        return this.builder.toJSON(this.data)
+    }
 
     /**
      * > ** **
@@ -99,7 +103,7 @@ export default class MiauMessageCommand extends MiauInteraction {
      * el código. Por favor, intenta utilizar el valor por defecto.
      */
     override async execution(context: Message): Promise<void> {
-
+        await context.reply({content: '¡Dato curioso!\n¿Sabías que ves este mensaje porque mi desarrollador no ha terminado de programarme y es un perezoso al que le lleva 2 meses hacer un handler?'})
     }
 
     /**

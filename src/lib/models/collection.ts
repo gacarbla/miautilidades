@@ -1,9 +1,9 @@
-import client from "../..";
 import { CollectionItem } from "../types/collection";
+import { Counter } from "../utils";
 
 class Collection<T = any> {
     private content: Record<string, CollectionItem<T>> = {};
-    private count = new client.utils.Counter()
+    private count = new Counter()
 
     constructor() {}
 

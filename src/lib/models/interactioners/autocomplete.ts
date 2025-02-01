@@ -1,4 +1,4 @@
-import { Message, Interaction, AutocompleteInteraction } from "discord.js";
+import { AutocompleteInteraction } from "discord.js";
 import MiauInteraction from "./interaction";
 
 export default class MiauAutocomplete extends MiauInteraction {

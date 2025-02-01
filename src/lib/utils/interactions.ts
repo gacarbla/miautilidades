@@ -68,8 +68,11 @@ export default class InteractionUtils {
                 return true;
             }
         },
+
+        // TODO: Terminar verificador de parámetro correcto.
         message: (param: MiauMessageCommandParam):boolean => {
-            return true
+            if (param) return true
+            return false
         }
     }
 }

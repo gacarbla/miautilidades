@@ -5,8 +5,8 @@ import { ProtectedCollection } from "../../collection"
 class MiauMessageSubcommandBuilder {
     constructor() { }
 
-    execution(message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>): void {
-
+    async execution(message: Message, _: ProtectedCollection<MiauMessageCommandParamResponse>): Promise<void> {
+        await message.reply('¡Hola! No tengo ni idea de qué hace ese comando...')
     }
 
     // TODO: Permitir precondiciones en subcomandos.
@@ -27,7 +27,7 @@ class MiauMessageSubcommandBuilder {
         return this
     }
 
-    setExecution(f: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => void): this {
+    setExecution(f: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => Promise<void>): this {
         // TODO: Verificar que la función es correcta
         this.execution = f
         return this

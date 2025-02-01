@@ -1,5 +1,5 @@
 import { Message } from "discord.js"
-import { MiauMessageCommandParam, MiauMessageCommandParamResponse } from "../../../interfaces/messageCommand"
+import { MiauMessageCommandDefaultData, MiauMessageCommandParam, MiauMessageCommandParamResponse } from "../../../interfaces/messageCommand"
 import MiauMessageSubcommandBuilder from "./messageSubcommandBuilder"
 import MiauMessageSubcommandgroupBuilder from "./messageSubcommandgroupBuilder"
 import { ProtectedCollection } from "../../collection"
@@ -47,7 +47,7 @@ class MiauMessageCommandBuilder {
      * 
      * Se recomienda no alterarla manualmente. Utiliza la función `setExecution`.
      */
-    execution(message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>): void {
+    async execution(message: Message, _: ProtectedCollection<MiauMessageCommandParamResponse>): Promise<void> {
         message.reply({content: '¡Mensaje leído!\nPero... No sé qué debo hacer...'})
     }
 
@@ -56,7 +56,7 @@ class MiauMessageCommandBuilder {
      * ### ¿Qué es esto?
      * Función que establece la ejecución designada al comando.
      */
-    setExecution(f: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => void): this {
+    setExecution(f: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => Promise<void>): this {
         // TODO: Verificar que la función es correcta.
         this.execution = f
         return this
@@ -86,6 +86,13 @@ class MiauMessageCommandBuilder {
         return this
     }
 
+    toJSON(data:MiauMessageCommandDefaultData):Object {
+        return {
+            name: data.name,
+            alias: data.alias,
+            description: data.description
+        }
+    }
     // TODO: Añadir función `test` que permita comprobar si el comando cumple los requisitos para ser válido.
 }
 

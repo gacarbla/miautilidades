@@ -4,6 +4,7 @@ import { MiauButton, MiauChannelSelect, MiauContextMenu, MiauMessageCommand, Mia
 import Utils from "../utils";
 import MiauModal from "./interactioners/modal";
 import MiauAutocomplete from "./interactioners/autocomplete";
+import settings from "../../settings";
 
 interface MiauClientOptions {
     interactionsFolder:string
@@ -52,8 +53,10 @@ interface MiauClientEventsObject {
 
 class MiauClient extends Client {
     private params:MiauClientOptions
+    public utils:Utils = new Utils()
     constructor(djs_params:ClientOptions, mjs_params:MiauClientOptions) {
         super(djs_params)
+        console.log("MiauClient iniciado")
         this.params = mjs_params
     }
 
@@ -105,10 +108,22 @@ class MiauClient extends Client {
         autocompletes: new Collection<MiauAutocomplete>()
     }
 
-    utils = new Utils()
+    async build(token:string): Promise<void> {
+        await this.load()
+        settings.refreshInteractions?this.refreshInteractions():undefined
+        console.log("MiauClient configurado")
+        this.login(token)
+    }
 
-    load = async (): Promise<void> => {}
-    refreshInteractions = async (): Promise<void> => {}
+    // TODO: Función que cargue todos los listeners y eventos
+    load = async (): Promise<void> => {
+        this.params.defaultPrefix
+    }
+
+    // TODO: Función que asíncronamente actualice las interacciones
+    refreshInteractions = async (): Promise<void> => {
+        
+    }
 }
 
 export default MiauClient

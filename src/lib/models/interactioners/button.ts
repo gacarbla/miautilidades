@@ -1,9 +1,9 @@
-import { ButtonBuilder, ButtonInteraction, ButtonStyle, Interaction, Message } from "discord.js";
+import { ButtonBuilder, ButtonInteraction } from "discord.js";
 import MiauInteraction from "./interaction";
 import Emoji from "../../enum/emojis";
 import client from "../../..";
 import { MiauButtonBuildData, MiauButtonDefaultData } from "../../interfaces/button";
-import Collection, { ProtectedCollection } from "../collection";
+import { ProtectedCollection } from "../collection";
 
 /**
  * > ** **
@@ -151,7 +151,7 @@ export default class MiauButton extends MiauInteraction {
      * 
      * Intenta no modificarla de forma directa, utiliza `setExecution`.
      */
-    override async execution(context: ButtonInteraction, params: ProtectedCollection<string|number>): Promise<void> {
+    override async execution(context: ButtonInteraction, _: ProtectedCollection<string|number>): Promise<void> {
         await context.reply({ content: "¡Qué bien, el botón funciona!\nPero... Mi programador no me ha dicho qué tengo que hacer ahora...", ephemeral: true });
     }
 

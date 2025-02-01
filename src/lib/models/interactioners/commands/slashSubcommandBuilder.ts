@@ -9,8 +9,8 @@ class MiauSlashSubcommandBuilder {
 
     private console = client.utils.console
 
-    execution(interaction: ChatInputCommandInteraction, params: ProtectedCollection<MiauSlashCommandParam>) {
-
+    async execution(interaction: ChatInputCommandInteraction, _: ProtectedCollection<MiauSlashCommandParam>): Promise<void> {
+        await interaction.reply({content: 'Es gracioso, pero yo no conozco este comando...'})
     }
 
     params: MiauSlashCommandParam[] = []
@@ -64,7 +64,7 @@ class MiauSlashSubcommandBuilder {
         return this
     }
 
-    setExecution(f: (interaction: ChatInputCommandInteraction, params: ProtectedCollection<MiauSlashCommandParam>) => void): this {
+    setExecution(f: (interaction: ChatInputCommandInteraction, params: ProtectedCollection<MiauSlashCommandParam>) => Promise<void>): this {
         // TODO: Verificación de que la función es válida.
         this.execution = f
         return this
