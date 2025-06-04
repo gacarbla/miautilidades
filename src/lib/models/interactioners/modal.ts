@@ -5,7 +5,7 @@ import MiauInteraction from "./interaction";
 import { ProtectedCollection } from "../collection";
 
 export default class MiauModal extends MiauInteraction {
-    protected data: MiauModalDefaultData
+    data: MiauModalDefaultData
 
     constructor(data: MiauModalDefaultData) {
         super();

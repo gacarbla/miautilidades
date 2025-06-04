@@ -39,4 +39,14 @@ const client = new MiauClient({
     replyToMention: true
 });
 
+if (process.env.TOKEN) {
+    try {
+        client.build(process.env.TOKEN)
+    } catch (e) {
+        client.utils.console.error(["error", "loadError"], "Error: "+e)
+    }
+} else {
+    client.utils.console.error(["error", "loadError"], "Token no encontrado")
+}
+
 export default client;

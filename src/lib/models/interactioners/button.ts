@@ -50,7 +50,7 @@ import { ProtectedCollection } from "../collection";
  * ```
  */
 export default class MiauButton extends MiauInteraction {
-    protected data: MiauButtonDefaultData
+    data: MiauButtonDefaultData
 
     /**
      * > ** **

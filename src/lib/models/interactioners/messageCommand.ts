@@ -24,7 +24,7 @@ import { MiauMessageCommandDefaultData } from "../../interfaces/messageCommand";
  * ```
  */
 export default class MiauMessageCommand extends MiauInteraction {
-    private data: MiauMessageCommandDefaultData
+    data: MiauMessageCommandDefaultData
 
     /**
      * > ** **

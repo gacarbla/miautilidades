@@ -52,7 +52,7 @@ type AnySelectMenuBuilder = StringSelectMenuBuilder | UserSelectMenuBuilder | Ro
  * ```
  */
 export default class MiauSelect extends MiauInteraction {
-    protected data:MiauSelectDefaultData
+    data:MiauSelectDefaultData
 
     /**
      * > ** **

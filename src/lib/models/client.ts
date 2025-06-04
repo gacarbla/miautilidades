@@ -1,11 +1,15 @@
 import { Client, ClientOptions } from "discord.js";
 import Collection from "./collection";
+import path from "path";
+import { pathToFileURL } from 'url';
+import fs from "fs/promises";
 import { MiauButton, MiauChannelSelect, MiauContextMenu, MiauMessageCommand, MiauRoleSelect, MiauSlashCommand, MiauStringSelect, MiauUserSelect } from "./interactions";
 import Utils from "../utils";
 import MiauModal from "./interactioners/modal";
 import MiauAutocomplete from "./interactioners/autocomplete";
 import settings from "../../settings";
 import { MiauClientEventsObject, MiauClientOptions } from "../interfaces/client";
+import { deployCommands } from "../../deploy";
 
 class MiauClient extends Client {
     private params: MiauClientOptions
@@ -95,7 +99,6 @@ class MiauClient extends Client {
 
     async build(token: string): Promise<void> {
         await this.load()
-        settings.refreshInteractions ? this.refreshInteractions() : undefined
         console.log("MiauClient configurado")
         this.login(token)
     }
@@ -103,6 +106,9 @@ class MiauClient extends Client {
     load = async (): Promise<void> => {
         this.on("ready", () => {
             console.log(`[✅] Cliente iniciado como ${this.user?.tag}`);
+            if (settings.refreshInteractions) {
+                this.refreshInteractions()
+            }
         });
 
         this.on("interactionCreate", async (interaction) => {
@@ -193,8 +199,72 @@ class MiauClient extends Client {
     }
 
     refreshInteractions = async (): Promise<void> => {
+        const basePath = path.resolve(this.params.interactionsFolder);
 
-    }
+        const loadFiles = async (dir: string): Promise<void> => {
+            const entries = await fs.readdir(dir, { withFileTypes: true });
+
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+
+                if (entry.isDirectory()) {
+                    await loadFiles(fullPath);
+                    continue;
+                }
+
+                if (!entry.name.match(/\.(js|ts)$/) || entry.name.endsWith(".d.ts") || entry.name.endsWith(".d.js"))
+                    continue;
+
+                try {
+                    const fileUrl = pathToFileURL(fullPath).href;
+                    const imported = await import(fileUrl);
+
+                    // Evita que 'default' sea un contenedor duplicado
+                    const exportList = Object.values(imported).flatMap(v =>
+                        typeof v === "object" && v !== null && "default" in v
+                            ? Object.values(v)
+                            : [v]
+                    );
+
+                    for (const instance of exportList) {
+                        if (!(instance instanceof Object)) continue;
+
+                        if (instance instanceof MiauMessageCommand)
+                            this.interactions.message.add(instance, instance.data.name);
+                        else if (instance instanceof MiauSlashCommand)
+                            this.interactions.slashCommands.add(instance, instance.data.name);
+                        else if (instance instanceof MiauContextMenu)
+                            this.interactions.contextMenus.add(instance, instance.data.name);
+                        else if (instance instanceof MiauButton)
+                            this.interactions.buttons.add(instance, instance.data.customId);
+                        else if (instance instanceof MiauModal)
+                            this.interactions.modals.add(instance, instance.data.customId);
+                        else if (instance instanceof MiauStringSelect)
+                            this.interactions.stringSelects.add(instance, instance.data.customId);
+                        else if (instance instanceof MiauRoleSelect)
+                            this.interactions.roleSelects.add(instance, instance.data.customId);
+                        else if (instance instanceof MiauChannelSelect)
+                            this.interactions.channelSelects.add(instance, instance.data.customId);
+                        else if (instance instanceof MiauUserSelect)
+                            this.interactions.userSelects.add(instance, instance.data.customId);
+                        else if (instance instanceof MiauAutocomplete)
+                            this.interactions.autocompletes.add(instance, instance.data.command);
+                    }
+                } catch (err) {
+                    console.error(`❌ Error al importar ${fullPath}:`/*, err*/);
+                }
+            }
+        };
+
+        try {
+            await loadFiles(basePath);
+            await deployCommands(this);
+            console.log("✅ Interacciones cargadas desde", basePath);
+        } catch (err) {
+            console.error("❌ Error cargando interacciones:", err);
+        }
+    };
+
 }
 
 export default MiauClient

@@ -76,6 +76,7 @@ export default class MiauSlashCommand extends MiauInteraction {
     }
 
     override async execution(context: ChatInputCommandInteraction, data: ProtectedCollection<string | ProtectedCollection | null>): Promise<void> {
+        data.getAll()
         await context.reply({ content: '¡Dato curioso!\n¿Sabías que ves este mensaje porque mi desarrollador no ha terminado de programarme y es un perezoso al que le lleva 2 meses hacer un handler?', flags: [MessageFlags.Ephemeral] })
     }
 
