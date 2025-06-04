@@ -1,15 +1,26 @@
 import client from "../../../.."
+import { interactionNameRegEx } from "../../../constants/discord"
 import { MiauSlashCommandDefaultData, MiauSlashCommandParam } from "../../../interfaces/interaction"
+import Preconditions from "../../preconditions"
 import MiauSlashSubcommandBuilder from "./slashSubcommandBuilder"
 import MiauSlashSubcommandgroupBuilder from "./slashSubcommandgroupBuilder"
 
 class MiauSlashCommandBuilder {
 
     params: MiauSlashCommandParam[] = []
-    subcommands:MiauSlashSubcommandBuilder[] = []
-    subcommandgroups:MiauSlashSubcommandgroupBuilder[] = []
+    subcommands: MiauSlashSubcommandBuilder[] = []
+    subcommandgroups: MiauSlashSubcommandgroupBuilder[] = []
 
-    // TODO: Añadir posibilidad de añadir precondiciones al comando.
+    private preconditions: Preconditions[] = [];
+
+    addPreconditions(...preconditions: Preconditions[]): this {
+        this.preconditions.push(...preconditions);
+        return this;
+    }
+
+    getPreconditions(): Preconditions[] {
+        return this.preconditions;
+    }
 
     addSubcommand(s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder): this {
         const subcommand = new MiauSlashSubcommandBuilder()
@@ -31,7 +42,7 @@ class MiauSlashCommandBuilder {
         return this
     }
 
-    addParam(param:MiauSlashCommandParam):this {
+    addParam(param: MiauSlashCommandParam): this {
         if (this.subcommands.length > 0) throw new Error("No se puede asignar un parámetro a un comando con subcomandos.")
         if (this.subcommandgroups.length > 0) throw new Error("No se puede asignar un parámetro a un comando con grupos de subcomandos.")
         if (!client.utils.Interactions.verify.param.slash(param)) throw new Error("Parámetro con estructura incorrecta.")
@@ -39,19 +50,67 @@ class MiauSlashCommandBuilder {
         return this
     }
 
-    // TODO: Añadir función `test` que verifique que el comando es válido.
+    test(data: MiauSlashCommandDefaultData): boolean {
+        const nameOk =
+            typeof data.name === 'string' &&
+            interactionNameRegEx.test(data.name) &&
+            data.name.length >= 1 &&
+            data.name.length <= 32;
 
-    toJSON(data:MiauSlashCommandDefaultData) {
-        // TODO: Añadir verificación con función `test` para certificar que el comando es válido antes de exportarlo.
+        const descOk =
+            typeof data.description === 'string' &&
+            data.description.length >= 1 &&
+            data.description.length <= 100;
+
+        const hasSubcommands = this.subcommands.length > 0;
+        const hasGroups = this.subcommandgroups.length > 0;
+        const hasParams = this.params.length > 0;
+
+        const oneTypeOnly =
+            [hasSubcommands, hasGroups, hasParams].filter(Boolean).length === 1;
+
+        const allSubsValid = this.subcommands.every(s => s.test());
+        const allGroupsValid = this.subcommandgroups.every(g => g.test());
+        const allParamsValid = this.params.every(p => client.utils.Interactions.verify.param.slash(p));
+
+        return nameOk && descOk && oneTypeOnly && allSubsValid && allGroupsValid && allParamsValid;
+    }
+
+    toJSON(data: MiauSlashCommandDefaultData) {
+        if (!this.test(data)) {
+            throw new Error("El comando no es válido.");
+        }
+
+        return {
+            name: data.name.toLowerCase(),
+            description: data.description,
+            options: this.subcommands.length > 0
+                ? this.subcommands.map(s => s.toJSON())
+                : this.subcommandgroups.length > 0
+                    ? this.subcommandgroups.map(g => g.toJSON())
+                    : this.params.map(p => ({
+                        type: p.type,
+                        name: p.customId,
+                        description: p.description,
+                        required: p.required ?? false,
+                        choices: p.choices ?? undefined
+                    }))
+        };
+    }
+
+    exportHelp(data: MiauSlashCommandDefaultData): any {
         return {
             name: data.name,
             description: data.description,
-            subcommands: this.subcommands.map(s => s.toJSON()),
-            subcommandgroups: this.subcommandgroups.map(s => s.toJSON()),
-        }
+            type: this.subcommands.length > 0 ? 'subcommands' :
+                this.subcommandgroups.length > 0 ? 'groups' : 'params',
+            content:
+                this.subcommands.length > 0 ? this.subcommands.map(s => s.exportHelp()) :
+                    this.subcommandgroups.length > 0 ? this.subcommandgroups.map(g => g.exportHelp()) :
+                        this.params.map(p => `${p.customId}${p.required ? '*' : ''}`)
+        };
     }
 
-    // TODO: Permitir exportar para comando help
 }
 
 export default MiauSlashCommandBuilder

@@ -35,19 +35,19 @@ class MiauSlashSubcommandgroupBuilder {
         this.name = name;
         return this;
     }
-    
+
 
     setDescription(description: string): this {
         if (description.length < 1) {
             this.console.error(
-                ["error", "commandBuildError"], 
+                ["error", "commandBuildError"],
                 "La descripción debe tener al menos un carácter."
             );
             throw new Error("La descripción debe tener al menos un carácter.");
         }
         if (description.length > 100) {
             this.console.warning(
-                ["commandBuildError"], 
+                ["commandBuildError"],
                 "La descripción no puede exceder los 100 caracteres."
             );
             description = description.substring(0, 100); // Recorta a 100 caracteres si es necesario
@@ -55,9 +55,9 @@ class MiauSlashSubcommandgroupBuilder {
         // TODO: Añadir verificación de que los caracteres empleados son válidos.
         this.description = description;
         return this;
-    }    
+    }
 
-    addSubcommand(s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder):this {
+    addSubcommand(s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder): this {
         const subcommand = new MiauSlashSubcommandBuilder()
         const apply = s(subcommand)
         if (!apply.test()) throw new Error("El subcomando parece estar mal declarado.")
@@ -66,34 +66,52 @@ class MiauSlashSubcommandgroupBuilder {
         return this
     }
 
-    test():boolean {
-        // TODO: Actualizar para verificar que todos los subcomandos son válidos.
-        return (
+    test(): boolean {
+        const nameOk =
             typeof this.name === 'string' &&
+            interactionNameRegEx.test(this.name) &&
+            this.name.length >= 1 &&
+            this.name.length <= 32;
+
+        const descOk =
             typeof this.description === 'string' &&
-            this.name.length > 1 &&
-            this.name.length <= 32 &&
-            this.description.length > 1 &&
-            this.description.length <= 100 &&
-            this.subcommands.length > 1 &&
-            this.subcommands.length <= 25
-        );
+            this.description.length >= 1 &&
+            this.description.length <= 100;
+
+        const allSubsValid =
+            this.subcommands.every(sub => sub.test());
+
+        const countOk =
+            this.subcommands.length >= 1 &&
+            this.subcommands.length <= 25;
+
+        return nameOk && descOk && allSubsValid && countOk;
     }
+
+
 
     toJSON() {
-        // TODO: Actualizar para utilizar la función `test`
-        if (!this.name || !this.description) {
-            this.console.error(["error", "commandBuildError"], "Los campos de nombre y descripción son obligatorios.")
-            throw new Error("Los campos de nombre y descripción son obligatorios.")
+        if (!this.test()) {
+            this.console.error(["error", "commandBuildError"], "El grupo de subcomandos no es válido.");
+            throw new Error("El grupo de subcomandos no es válido.");
         }
+
         return {
-            name: this.name.toLowerCase(),
-            description: this.description,
-            subcommands: this.subcommands.map(s => s.toJSON())
-        }
+            name: this.name!.toLowerCase(),
+            description: this.description!,
+            type: 2, // Subcommand Group
+            options: this.subcommands.map(s => s.toJSON())
+        };
     }
 
-    // TODO: Permitir exportar para comando help
+    exportHelp(): { name: string, description: string, subcommands: ReturnType<MiauSlashSubcommandBuilder['exportHelp']>[] } {
+        return {
+            name: this.name ?? "desconocido",
+            description: this.description ?? "",
+            subcommands: this.subcommands.map(s => s.exportHelp())
+        };
+    }
+
 }
 
 export default MiauSlashSubcommandgroupBuilder

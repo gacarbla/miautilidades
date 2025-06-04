@@ -2,6 +2,7 @@ import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction
 import Preconditions from "../preconditions";
 import client from "../../..";
 import Emoji from "../../enum/emojis";
+import ConsoleController from "../../utils/console";
 
 /**
  * > ** **
@@ -13,8 +14,11 @@ import Emoji from "../../enum/emojis";
 export default abstract class MiauInteraction {
     private preconditions:Preconditions[]|undefined
     noPermissionMenssage:string|undefined
+    console: ConsoleController
 
-    constructor() {}
+    constructor() {
+        this.console = client.utils.console
+    }
 
     async execute(context: Message | Interaction): Promise<any> {
         const able = await this.checkPreconditions(context)
@@ -32,7 +36,7 @@ export default abstract class MiauInteraction {
         }
     }
 
-    addPreconditions(...preconditions:Preconditions[]): void {
+    addPreconditions(...preconditions:Preconditions[]): this {
         let s = 0, f = 0
         this.preconditions?.forEach(precondition => {
             if (precondition.test()) {
@@ -50,6 +54,7 @@ export default abstract class MiauInteraction {
             ['interactionPreconditionsBuildError', 'error'],
             `${f} precondiciones han fallado`
         ):undefined
+        return this
     }
 
     async checkPreconditions(context: Message | Interaction): Promise<boolean> {
@@ -60,8 +65,9 @@ export default abstract class MiauInteraction {
 
     abstract execution?(context: Message | Interaction, params?:any): Promise<void>;
 
-    setExecution?(fun: (context: Message | Interaction) => Promise<void>): void {
+    setExecution?(fun: (context: Message | Interaction) => Promise<void>): this {
         (this.execution as (context: Message | Interaction) => Promise<void>) = fun;
+        return this
     }
 
     protected async handleNotFound(context: Message | Interaction) {

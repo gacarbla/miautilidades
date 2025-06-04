@@ -11,7 +11,8 @@ export default class MiauStringSelect extends MiauSelect {
         await context.reply({ content: "Menú de selección de canal respondido, pero no se ha definido acción específica." });
     }
 
-    override setExecution(f: (context: StringSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
+    override setExecution(f: (context: StringSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
         this.execution = f;
+        return this
     }
 }

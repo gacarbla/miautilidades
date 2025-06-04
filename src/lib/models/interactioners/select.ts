@@ -154,7 +154,8 @@ export default class MiauSelect extends MiauInteraction {
      * })
      * ```
      */
-    override setExecution(f: (context: AnySelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
+    override setExecution(f: (context: AnySelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
         this.execution = f;
+        return this
     }
 }

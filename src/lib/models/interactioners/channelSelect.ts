@@ -69,7 +69,8 @@ export default class MiauChannelSelect extends MiauSelect {
         await context.reply({ content: "Menú de selección de canal respondido, pero no se ha definido acción específica.", ephemeral: true });
     }
 
-    override setExecution(f: (context: ChannelSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
+    override setExecution(f: (context: ChannelSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
         this.execution = f;
+        return this
     }
 }

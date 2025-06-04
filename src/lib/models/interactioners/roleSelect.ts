@@ -12,7 +12,8 @@ export default class MiauRoleSelect extends MiauSelect {
         await context.reply({ content: "Menú de selección de mencionable respondido, pero no se ha definido acción específica.", ephemeral: true });
     }
 
-    override setExecution(f: (context: RoleSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
+    override setExecution(f: (context: RoleSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
         this.execution = f;
+        return this
     }
 }

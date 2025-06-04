@@ -167,7 +167,8 @@ export default class MiauButton extends MiauInteraction {
      * })
      * ```
      */
-    override setExecution(f: (context: ButtonInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
+    override setExecution(f: (context: ButtonInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
         this.execution = f;
+        return this
     }
 }

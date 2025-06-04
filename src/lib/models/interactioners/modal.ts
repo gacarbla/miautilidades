@@ -23,7 +23,8 @@ export default class MiauModal extends MiauInteraction {
         await context.reply({ content: "¡Qué bien, el modal funciona!\nPero... Mi programador no me ha dicho qué tengo que hacer ahora...", ephemeral: true });
     }
 
-    override setExecution(f: (context: ModalSubmitInteraction, params: ProtectedCollection<string|number>) => Promise<void>): void {
+    override setExecution(f: (context: ModalSubmitInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
         this.execution = f
+        return this
     }
 }

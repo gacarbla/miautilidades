@@ -7,8 +7,9 @@ export default class MiauAutocomplete extends MiauInteraction {
         await interaction.respond([])
     }
 
-    override setExecution(fun: (interaction: AutocompleteInteraction) => Promise<void>): void {
+    override setExecution(fun: (interaction: AutocompleteInteraction) => Promise<void>): this {
         (this.execution as (interaction: AutocompleteInteraction) => Promise<void>) = fun;
+        return this
     }
 
 }
