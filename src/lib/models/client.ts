@@ -16,7 +16,7 @@ class MiauClient extends Client {
     public utils: Utils = new Utils()
     constructor(djs_params: ClientOptions, mjs_params: MiauClientOptions) {
         super(djs_params)
-        console.log("MiauClient iniciado")
+        this.utils.console.log([], "MiauClient iniciado")
         this.params = mjs_params
     }
 
@@ -85,6 +85,12 @@ class MiauClient extends Client {
     }
 
     interactions = {
+        getDeployJSON: () => {
+            const sc = this.interactions.slashCommands.getAll().map(c => c.value.toJSON())
+            const mc = this.interactions.contextMenus.getAll().map(c => c.value.toJSON())
+            //const ac = this.interactions.autocompletes.getAll().map(c => c.value.toJSON())
+            return [...mc, ...sc/*, ...ac*/]
+        },
         message: new Collection<MiauMessageCommand>(),
         slashCommands: new Collection<MiauSlashCommand>(),
         contextMenus: new Collection<MiauContextMenu>(),
@@ -99,20 +105,22 @@ class MiauClient extends Client {
 
     async build(token: string): Promise<void> {
         await this.load()
-        console.log("MiauClient configurado")
+        this.utils.console.success([], "Configuración de MiauClient exitosa")
         this.login(token)
     }
 
     load = async (): Promise<void> => {
+        if (settings.refreshInteractions) {
+            this.refreshInteractions()
+        }
+
         this.on("ready", () => {
-            console.log(`[✅] Cliente iniciado como ${this.user?.tag}`);
-            if (settings.refreshInteractions) {
-                this.refreshInteractions()
-            }
+            this.utils.console.success(["startLog"], `Cliente iniciado como ${this.user?.tag}`);
         });
 
         this.on("interactionCreate", async (interaction) => {
             if (interaction.isChatInputCommand()) {
+                this.utils.console.log(["commandExecutionLog"], "Nueva ejecución de comando: /"+interaction.commandName)
                 const command = this.interactions.slashCommands.get(interaction.commandName);
                 if (command) await command.execute(interaction);
             }
@@ -229,29 +237,40 @@ class MiauClient extends Client {
                     for (const instance of exportList) {
                         if (!(instance instanceof Object)) continue;
 
-                        if (instance instanceof MiauMessageCommand)
+                        if (instance instanceof MiauMessageCommand) {
                             this.interactions.message.add(instance, instance.data.name);
-                        else if (instance instanceof MiauSlashCommand)
+                            this.utils.console.info(["interactionBuildLog"], `+ Comando: $${instance.data.name}`)
+                        } else if (instance instanceof MiauSlashCommand) {
                             this.interactions.slashCommands.add(instance, instance.data.name);
-                        else if (instance instanceof MiauContextMenu)
+                            this.utils.console.info(["interactionBuildLog"], `+ Comando: /${instance.data.name}`)
+                        } else if (instance instanceof MiauContextMenu) {
                             this.interactions.contextMenus.add(instance, instance.data.name);
-                        else if (instance instanceof MiauButton)
+                            this.utils.console.info(["interactionBuildLog"], `+ Menú contextual: ${instance.data.name}`)
+                        } else if (instance instanceof MiauButton) {
                             this.interactions.buttons.add(instance, instance.data.customId);
-                        else if (instance instanceof MiauModal)
+                            this.utils.console.info(["interactionBuildLog"], `+ Botón: ${instance.data.customId}`)
+                        } else if (instance instanceof MiauModal) {
                             this.interactions.modals.add(instance, instance.data.customId);
-                        else if (instance instanceof MiauStringSelect)
+                            this.utils.console.info(["interactionBuildLog"], `+ Modal: ${instance.data.customId}`)
+                        } else if (instance instanceof MiauStringSelect) {
                             this.interactions.stringSelects.add(instance, instance.data.customId);
-                        else if (instance instanceof MiauRoleSelect)
+                            this.utils.console.info(["interactionBuildLog"], `+ String Select: ${instance.data.customId}`)
+                        } else if (instance instanceof MiauRoleSelect) {
                             this.interactions.roleSelects.add(instance, instance.data.customId);
-                        else if (instance instanceof MiauChannelSelect)
+                            this.utils.console.info(["interactionBuildLog"], `+ Role Select: ${instance.data.customId}`)
+                        } else if (instance instanceof MiauChannelSelect) {
                             this.interactions.channelSelects.add(instance, instance.data.customId);
-                        else if (instance instanceof MiauUserSelect)
+                            this.utils.console.info(["interactionBuildLog"], `+ Channel Select: ${instance.data.customId}`)
+                        } else if (instance instanceof MiauUserSelect) {
                             this.interactions.userSelects.add(instance, instance.data.customId);
-                        else if (instance instanceof MiauAutocomplete)
+                            this.utils.console.info(["interactionBuildLog"], `+ User Select: ${instance.data.customId}`)
+                        } else if (instance instanceof MiauAutocomplete) {
                             this.interactions.autocompletes.add(instance, instance.data.command);
+                            this.utils.console.info(["interactionBuildLog"], `+ Autocomplete: ${instance.data.command}`)
+                        }
                     }
                 } catch (err) {
-                    console.error(`❌ Error al importar ${fullPath}:`/*, err*/);
+                    this.utils.console.error(["interactionBuildError"], `Error al importar ${fullPath}:`+err);
                 }
             }
         };
@@ -259,9 +278,9 @@ class MiauClient extends Client {
         try {
             await loadFiles(basePath);
             await deployCommands(this);
-            console.log("✅ Interacciones cargadas desde", basePath);
+            this.utils.console.success(["interactionBuildLog"], "Interacciones cargadas desde "+basePath);
         } catch (err) {
-            console.error("❌ Error cargando interacciones:", err);
+            this.utils.console.error(["interactionBuildError"], "Error cargando interacciones: "+err);
         }
     };
 

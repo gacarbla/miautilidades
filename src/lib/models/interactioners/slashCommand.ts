@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { MiauSlashCommandDefaultData } from "../../interfaces/interaction";
+import { MiauSlashCommandDefaultData, MiauSlashCommandResponseData } from "../../interfaces/interaction";
 import MiauSlashCommandBuilder from "./commands/slashBuilder";
 import MiauInteraction from "./interaction";
 import { Collection, ProtectedCollection } from "../collection";
@@ -17,17 +17,16 @@ export default class MiauSlashCommand extends MiauInteraction {
     }
 
     override async execute(context: ChatInputCommandInteraction): Promise<void> {
-        const data = new Collection<ProtectedCollection>();
-        const commandInfo = new Collection<string|null>();
-
         try {
-            commandInfo.add(context.commandName, "commandName");
-            commandInfo.add(context.options.getSubcommand(false), "subcommand");
-            commandInfo.add(context.options.getSubcommandGroup(false), "group");
-            data.add(commandInfo.protected, "commandInfo");
-            data.add(this.parseParams(context), "params");
-
-            await this.execution(context, data.protected);
+            const data: MiauSlashCommandResponseData = {
+                name: this.data.name,
+                description: this.data.description,
+                isRestricted: this.data.isRestricted,
+                subcommand: context.options.getSubcommand(true),
+                subcommandGroup: context.options.getSubcommandGroup(true),
+                params: []
+            }
+            await this.execution(context, data);
         } catch (error) {
             this.console.error(["commandExecutionError"], `[${context.commandName}] Error de ejecución:`, error);
 
@@ -60,7 +59,7 @@ export default class MiauSlashCommand extends MiauInteraction {
                 continue;
             }
 
-            const valid = Helper.CommandParams.verifyParamType(param.type, raw);
+            const valid = Helper.CommandParams.verifyParamType("slashcommand", param.type, raw);
             if (!valid) {
                 throw new Error(`El valor de "${param.name}" no cumple el tipo "${param.type}".`);
             }
@@ -75,13 +74,13 @@ export default class MiauSlashCommand extends MiauInteraction {
         return collection.protected;
     }
 
-    override async execution(context: ChatInputCommandInteraction, data: ProtectedCollection<string | ProtectedCollection | null>): Promise<void> {
-        data.getAll()
+    override async execution(context: ChatInputCommandInteraction, data: MiauSlashCommandResponseData): Promise<void> {
+        data
         await context.reply({ content: '¡Dato curioso!\n¿Sabías que ves este mensaje porque mi desarrollador no ha terminado de programarme y es un perezoso al que le lleva 2 meses hacer un handler?', flags: [MessageFlags.Ephemeral] })
     }
 
-    override setExecution(fun: (context: ChatInputCommandInteraction) => Promise<void>): this {
-        (this.execution as (context: ChatInputCommandInteraction) => Promise<void>) = fun;
+    override setExecution(fun: (context: ChatInputCommandInteraction, data: MiauSlashCommandResponseData) => Promise<void>): this {
+        (this.execution as (context: ChatInputCommandInteraction, data: MiauSlashCommandResponseData) => Promise<void>) = fun;
         return this
     }
 

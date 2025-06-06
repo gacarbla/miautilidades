@@ -13,6 +13,15 @@ export interface MiauSlashCommandDefaultData {
     isRestricted: boolean,
 }
 
+export interface MiauSlashCommandResponseData {
+    name: string,
+    description: string,
+    isRestricted: boolean,
+    subcommand?: string,
+    subcommandGroup?: string,
+    params: MiauSlashCommandParamResponse[]
+}
+
 export interface MiauSlashCommandParam {
     customId: string
     name: string

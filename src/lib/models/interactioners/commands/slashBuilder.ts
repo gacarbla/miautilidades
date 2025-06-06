@@ -67,7 +67,7 @@ class MiauSlashCommandBuilder {
         const hasParams = this.params.length > 0;
 
         const oneTypeOnly =
-            [hasSubcommands, hasGroups, hasParams].filter(Boolean).length === 1;
+            [hasSubcommands, hasGroups, hasParams].filter(Boolean).length <= 1;
 
         const allSubsValid = this.subcommands.every(s => s.test());
         const allGroupsValid = this.subcommandgroups.every(g => g.test());
