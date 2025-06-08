@@ -1,3 +1,4 @@
+import { SlashParamTypes } from "../../../lib/enum/interactions";
 import { MiauSlashCommand } from "../../../lib/models/interactions";
 
 const info = new MiauSlashCommand({
@@ -12,11 +13,11 @@ info.builder
         name: 'page',
         required: false,
         description: 'Página de información que quieres ver',
-        type: 'number'
+        type: SlashParamTypes.INTEGER
     })
 
 info.setExecution(async (context)=>{
-    context.reply({content: "¡Este comando sigue siendo construído!"})
+    context.reply({content: `Página seleccionada`})
 })
 
 export default info
