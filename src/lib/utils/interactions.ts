@@ -1,3 +1,4 @@
+import { SlashParamTypes } from "../enum/interactions";
 import { MiauSlashCommandParam } from "../interfaces/interaction"
 import { MiauMessageCommandParam } from "../interfaces/messageCommand";
 
@@ -5,14 +6,39 @@ export default class InteractionUtils {
     static verify = {
         param: {
             slash: (param: MiauSlashCommandParam): boolean => {
-                const stringTypes = ['word', 'text', 'letter'];
+                const stringTypes = ['WORD', 'TEXT', 'LETTER', SlashParamTypes.WORD, SlashParamTypes.TEXT, SlashParamTypes.LETTER];
 
                 if (
                     typeof param.customId !== 'string' ||
                     typeof param.name !== 'string' ||
                     typeof param.description !== 'string' ||
                     typeof param.required !== 'boolean' ||
-                    !['word', 'membermention', 'attachment', 'text', 'number', 'int', 'mention', 'channel', 'usermention', 'rolemention', 'letter', 'boolean'].includes(param.type)
+                    ![
+                        'WORD',
+                        'MEMBER',
+                        'ATTACHMENT',
+                        'TEXT',
+                        'NUMBER',
+                        'INTEGER',
+                        'MENTIONABLE',
+                        'CHANNEL',
+                        'USER',
+                        'ROLE',
+                        'LETTER',
+                        'BOOLEAN',
+                        SlashParamTypes.WORD,
+                        SlashParamTypes.MEMBER,
+                        SlashParamTypes.ATTACHMENT,
+                        SlashParamTypes.TEXT,
+                        SlashParamTypes.NUMBER,
+                        SlashParamTypes.INTEGER,
+                        SlashParamTypes.MENTIONABLE,
+                        SlashParamTypes.CHANNEL,
+                        SlashParamTypes.USER,
+                        SlashParamTypes.ROLE,
+                        SlashParamTypes.LETTER,
+                        SlashParamTypes.BOOLEAN
+                    ].includes(param.type)
                 ) {
                     return false;
                 }
@@ -38,7 +64,7 @@ export default class InteractionUtils {
                     }
                 }
 
-                if (param.type === 'number') {
+                if (param.type === "NUMBER" || param.type == SlashParamTypes.NUMBER) {
                     if (param.max_floating !== undefined && (typeof param.max_floating !== 'number' || param.max_floating < 0)) {
                         return false;
                     }
@@ -53,7 +79,7 @@ export default class InteractionUtils {
                     }
                 }
 
-                if (param.type === 'int') {
+                if (param.type === 'INTEGER' || param.type == SlashParamTypes.INTEGER) {
                     if (param.min !== undefined && !Number.isInteger(param.min)) {
                         return false;
                     }
@@ -70,7 +96,7 @@ export default class InteractionUtils {
         },
 
         // TODO: Terminar verificador de parámetro correcto.
-        message: (param: MiauMessageCommandParam):boolean => {
+        message: (param: MiauMessageCommandParam): boolean => {
             if (param) return true
             return false
         }

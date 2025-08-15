@@ -1,4 +1,4 @@
-import { Client, ClientOptions } from "discord.js";
+import { ButtonBuilder, Client, ClientOptions } from "discord.js";
 import Collection from "./collection";
 import path from "path";
 import { pathToFileURL } from 'url';
@@ -10,6 +10,7 @@ import MiauAutocomplete from "./interactioners/autocomplete";
 import settings from "../../settings";
 import { MiauClientEventsObject, MiauClientOptions } from "../interfaces/client";
 import { deployCommands } from "../../deploy";
+import { MiauButtonBuildData } from "../interfaces/button";
 
 class MiauClient extends Client {
     private params: MiauClientOptions
@@ -123,6 +124,11 @@ class MiauClient extends Client {
                 this.utils.console.log(["commandExecutionLog"], "Nueva ejecución de comando: /"+interaction.commandName)
                 const command = this.interactions.slashCommands.get(interaction.commandName);
                 if (command) await command.execute(interaction);
+            }
+            if (interaction.isButton()) {
+                const button = this.interactions.buttons.get(interaction.customId);
+                this.utils.console.log(["buttonExecutionLog"], `Nueva ejecución de botón: ${button?.data.name ?? "?"} (${interaction.customId})`)
+                if (button) await button.execute(interaction)
             }
         });
 
@@ -283,6 +289,18 @@ class MiauClient extends Client {
             this.utils.console.error(["interactionBuildError"], "Error cargando interacciones: "+err);
         }
     };
+
+    interactionBuild = {
+        button: (name: string): ((data?:MiauButtonBuildData) => ButtonBuilder)|undefined => {
+            let button = this.interactions.buttons.get(name)
+            if (typeof button == "undefined") throw new Error("Interacción no reconocida")
+            try {
+                return button.build
+            } catch (e) {
+                throw new Error("Error montando el comando: "+e)
+            }
+        }
+    }
 
 }
 

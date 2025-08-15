@@ -7,17 +7,16 @@ const info = new MiauSlashCommand({
     isRestricted: false
 })
 
-info.builder
+const builder = info.builder
     .addParam({
-        customId: 'page',
+        customId: 'pages',
         name: 'page',
         required: false,
         description: 'Página de información que quieres ver',
         type: SlashParamTypes.INTEGER
     })
 
-info.setExecution(async (context)=>{
-    context.reply({content: `Página seleccionada`})
-})
+const p = builder.getParams()
+p
 
 export default info

@@ -11,10 +11,25 @@ import { ProtectedCollection } from "../../collection"
  * 
  * **No se recomienda su uso fuera del constructor de comandos Message.**
  */
-class MiauMessageCommandBuilder {
-    constructor() { }
+class MiauMessageCommandBuilder<
+    TParams extends Record<string, MiauMessageCommandParam> = {}
+> {
+    constructor(init?: {
+        params?: TParams;
+        subcommands?: MiauMessageSubcommandBuilder[];
+        subcommandgroups?: MiauMessageSubcommandgroupBuilder[];
+        execution?: (
+            message: Message,
+            params: ProtectedCollection<MiauMessageCommandParamResponse>
+        ) => Promise<void>;
+    }) {
+        if (init?.params) this.params = init.params;
+        if (init?.subcommands) this.subcommands = init.subcommands;
+        if (init?.subcommandgroups) this.subcommandgroups = init.subcommandgroups;
+        if (init?.execution) this.execution = init.execution;
+    }
 
-    params: MiauMessageCommandParam[] = []
+    private params: TParams = {} as TParams;
     subcommands: MiauMessageSubcommandBuilder[] = []
     subcommandgroups: MiauMessageSubcommandgroupBuilder[] = []
 
@@ -34,10 +49,36 @@ class MiauMessageCommandBuilder {
      * gw!podcast --c #oyentes --s active
      * ```
      */
-    addParam(param: MiauMessageCommandParam): this {
-        // TODO: Verificar que el parámetro es correcto.
-        this.params.push(param)
-        return this
+    addParam<const P extends MiauMessageCommandParam & { customId: string }>(
+        param: P
+    ): MiauMessageCommandBuilder<TParams & { [K in P["customId"]]: P }> {
+        const key = param.customId as P["customId"];
+
+        // (opcional) valida duplicados
+        if ((this.params as Record<string, unknown>)[key]) {
+            throw new Error(`Ya existe un parámetro con customId '${key}'.`);
+        }
+
+        const nextParams = {
+            ...(this.params as Record<string, MiauMessageCommandParam>),
+            [key]: param,
+        } as TParams & { [K in P["customId"]]: P };
+
+        // devolvemos nueva instancia con el tipo acumulado
+        return new MiauMessageCommandBuilder<TParams & { [K in P["customId"]]: P }>({
+            params: nextParams,
+            subcommands: this.subcommands,
+            subcommandgroups: this.subcommandgroups,
+            execution: this.execution,
+        });
+    }
+
+    getParams(): TParams {
+        return this.params;
+    }
+
+    getParamsArray(): MiauMessageCommandParam[] {
+        return Object.values(this.params);
     }
 
     /**
@@ -47,8 +88,13 @@ class MiauMessageCommandBuilder {
      * 
      * Se recomienda no alterarla manualmente. Utiliza la función `setExecution`.
      */
-    async execution(message: Message, _: ProtectedCollection<MiauMessageCommandParamResponse>): Promise<void> {
-        message.reply({content: '¡Mensaje leído!\nPero... No sé qué debo hacer...'})
+    async execution(
+        message: Message,
+        _: ProtectedCollection<MiauMessageCommandParamResponse>
+    ): Promise<void> {
+        message.reply({
+            content: "¡Mensaje leído!\nPero... No sé qué debo hacer...",
+        });
     }
 
     /**
@@ -56,10 +102,14 @@ class MiauMessageCommandBuilder {
      * ### ¿Qué es esto?
      * Función que establece la ejecución designada al comando.
      */
-    setExecution(f: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => Promise<void>): this {
-        // TODO: Verificar que la función es correcta.
-        this.execution = f
-        return this
+    setExecution(
+        f: (
+            message: Message,
+            params: ProtectedCollection<MiauMessageCommandParamResponse>
+        ) => Promise<void>
+    ): this {
+        this.execution = f;
+        return this;
     }
 
     /**
@@ -86,7 +136,7 @@ class MiauMessageCommandBuilder {
         return this
     }
 
-    toJSON(data:MiauMessageCommandDefaultData):Object {
+    toJSON(data: MiauMessageCommandDefaultData): Object {
         return {
             name: data.name,
             alias: data.alias,

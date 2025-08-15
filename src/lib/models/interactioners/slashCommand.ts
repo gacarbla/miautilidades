@@ -17,23 +17,15 @@ export default class MiauSlashCommand extends MiauInteraction {
     }
 
     override async execute(context: ChatInputCommandInteraction): Promise<void> {
-        const data = new Collection<ProtectedCollection>();
-        const commandInfo = new Collection<string|null>();
-
         try {
-            commandInfo.add(context.commandName, "commandName");
-            commandInfo.add(context.options.getSubcommand(false), "subcommand");
-            commandInfo.add(context.options.getSubcommandGroup(false), "group");
-            data.add(commandInfo.protected, "commandInfo");
-            data.add(this.parseParams(context), "params");
-
-            await this.execution(context, data.protected);
+            void this.parseParams(context)
+            await this.execution(context);
         } catch (error) {
             this.console.error(["commandExecutionError"], `[${context.commandName}] Error de ejecución:`, error);
 
             const message =
                 error instanceof Error
-                    ? `❌ Ha ocurrido un error durante la ejecución.`
+                    ? "❌ Ha ocurrido un error durante la ejecución."
                     : "❌ Oh no... Ha ocurrido un error inesperado durante la ejecución del comando.";
 
             if (context.replied || context.deferred) {
@@ -48,7 +40,8 @@ export default class MiauSlashCommand extends MiauInteraction {
     private parseParams(interaction: ChatInputCommandInteraction): ProtectedCollection<any> {
         const collection = new Collection<any>();
 
-        const declaredParams = this.builder.params;
+        // Antes: const declaredParams = this.builder.params;
+        const declaredParams = this.builder.getParamsArray();
 
         for (const param of declaredParams) {
             const raw = interaction.options.get(param.customId)?.value;
@@ -65,18 +58,21 @@ export default class MiauSlashCommand extends MiauInteraction {
                 throw new Error(`El valor de "${param.name}" no cumple el tipo "${param.type}".`);
             }
 
-            collection.add({
-                name: param.name,
-                value: raw,
-                type: param.type
-            }, param.customId);
+            collection.add(
+                {
+                    name: param.name,
+                    value: raw,
+                    type: param.type
+                },
+                param.customId
+            );
         }
 
         return collection.protected;
     }
 
-    override async execution(context: ChatInputCommandInteraction, data: ProtectedCollection<string | ProtectedCollection | null>): Promise<void> {
-        data.getAll()
+
+    override async execution(context: ChatInputCommandInteraction): Promise<void> {
         await context.reply({ content: '¡Dato curioso!\n¿Sabías que ves este mensaje porque mi desarrollador no ha terminado de programarme y es un perezoso al que le lleva 2 meses hacer un handler?', flags: [MessageFlags.Ephemeral] })
     }
 

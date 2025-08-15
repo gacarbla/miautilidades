@@ -14,7 +14,7 @@ import ConsoleController from "../../utils/console";
 export default abstract class MiauInteraction {
     private preconditions:Preconditions[]|undefined
     noPermissionMenssage:string|undefined
-    console: ConsoleController
+    protected console: ConsoleController
 
     constructor() {
         this.console = client.utils.console
@@ -23,10 +23,10 @@ export default abstract class MiauInteraction {
     async execute(context: Message | Interaction): Promise<any> {
         const able = await this.checkPreconditions(context)
         if (!able) {
-            if ( context instanceof AutocompleteInteraction ) return context.respond([])
-            if ( context instanceof Message ) return context.reply({content: this.noPermissionMenssage??`${Emoji.ERROR} No tienes permisos para ejecutar este comando de texto.`})
-            context.reply({content: this.noPermissionMenssage??`${Emoji.ERROR} No tienes permisos para ejecutar esta interacción.`, ephemeral: true})
-        } else {
+			if (context instanceof AutocompleteInteraction) return context.respond([])
+			if (context instanceof Message) return context.reply({ content: this.noPermissionMenssage ?? `${Emoji.ERROR} No tienes permisos para ejecutar este comando de texto.` })
+			context.reply({ content: this.noPermissionMenssage ?? `${Emoji.ERROR} No tienes permisos para ejecutar esta interacción.`, ephemeral: true })
+		} else {
             if (typeof this.execution != 'function') return this.handleNotFound(context)
             try {
                 this.execution(context)
@@ -37,16 +37,18 @@ export default abstract class MiauInteraction {
     }
 
     addPreconditions(...preconditions:Preconditions[]): this {
-        let s = 0, f = 0
-        this.preconditions?.forEach(precondition => {
-            if (precondition.test()) {
-                preconditions.push(precondition)
-                s++
-            } else {
-                f++
-            }
-        })
-        client.utils.console.log(
+		let s = 0, f = 0;
+		this.preconditions = this.preconditions ?? []; // Ensure preconditions is initialized
+
+		preconditions.forEach(precondition => {
+			this.preconditions?.push(precondition); // Add all preconditions
+			if (precondition.test()) {
+				s++;
+			} else {
+				f++;
+			}
+		});
+		client.utils.console.log(
             ['interactionPreconditionsBuildLog'],
             `Cargadas ${s} precondiciones exitosamente. ${f>0?`${f} han fallado`:''}`
         )
@@ -63,7 +65,7 @@ export default abstract class MiauInteraction {
         return results.some(result => result);
     }
 
-    abstract execution?(context: Message | Interaction, params?:any): Promise<void>;
+	abstract execution?(context: Message | Interaction, params?: any): Promise<void>;
 
     setExecution?(fun: (context: Message | Interaction) => Promise<void>): this {
         (this.execution as (context: Message | Interaction) => Promise<void>) = fun;

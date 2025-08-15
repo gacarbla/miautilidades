@@ -3,7 +3,6 @@ import MiauInteraction from "./interaction";
 import Emoji from "../../enum/emojis";
 import client from "../../..";
 import { MiauButtonBuildData, MiauButtonDefaultData } from "../../interfaces/button";
-import { ProtectedCollection } from "../collection";
 
 /**
  * > ** **
@@ -104,12 +103,12 @@ export default class MiauButton extends MiauInteraction {
      * })
      * ```
      */
-    build(data: MiauButtonBuildData): ButtonBuilder {
+    build(buildData?: MiauButtonBuildData): ButtonBuilder {
         try {
-            var id = this.data.customId;
+            var id = this.data.customId
 
             try {
-                data.params?.forEach(param => {
+                buildData?.params?.forEach(param => {
                     if (param.includes("_")) throw new Error("Los parámetros de botones no pueden incluir el símbolo '_'");
                     id += `_${param}`;
                 });
@@ -121,15 +120,17 @@ export default class MiauButton extends MiauInteraction {
                 throw new Error(errorMessage);
             }
 
-            client.utils.console.log(['buttonBuildLog'], `Botón construido con ${data.params?.length ?? 0} parámetros.`);
+            client.utils.console.log(['buttonBuildLog'], `Botón construido con ${buildData?.params?.length ?? 0} parámetros.`);
 
             try {
+                let emoji = buildData?.customEmoji ?? this.data.emoji ?? undefined
                 const builder = new ButtonBuilder()
                     .setCustomId(id)
                     .setStyle(this.data.style)
-                    .setEmoji(data.customEmoji ?? this.data.emoji ?? "")
-                    .setDisabled(data.disabled ?? false)
-                    .setLabel(data.customLabel ?? this.data.label ?? "");
+                    .setDisabled(buildData?.disabled ?? false)
+                    .setLabel(buildData?.customLabel ?? this.data.label ?? "");
+
+                if (emoji) builder.setEmoji(emoji)
 
                 client.utils.console.log(['buttonBuildLog'], `Botón creado exitosamente: ${this.data.customId}`);
                 return builder;
@@ -151,7 +152,7 @@ export default class MiauButton extends MiauInteraction {
      * 
      * Intenta no modificarla de forma directa, utiliza `setExecution`.
      */
-    override async execution(context: ButtonInteraction, _: ProtectedCollection<string|number>): Promise<void> {
+    override async execution(context: ButtonInteraction): Promise<void> {
         await context.reply({ content: "¡Qué bien, el botón funciona!\nPero... Mi programador no me ha dicho qué tengo que hacer ahora...", ephemeral: true });
     }
 
@@ -167,7 +168,7 @@ export default class MiauButton extends MiauInteraction {
      * })
      * ```
      */
-    override setExecution(f: (context: ButtonInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
+    override setExecution(f: (context: ButtonInteraction) => Promise<void>): this {
         this.execution = f;
         return this
     }

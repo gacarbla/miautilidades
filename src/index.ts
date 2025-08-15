@@ -42,6 +42,7 @@ const client = new MiauClient({
 if (process.env.TOKEN) {
     try {
         client.build(process.env.TOKEN)
+        client.interactionBuild.button("test")?.({})
     } catch (e) {
         client.utils.console.error(["error", "loadError"], "Error: "+e)
     }

@@ -3,55 +3,59 @@ import {
     MiauSlashCommandParam,
     MiauSlashCommandParamResponse
 } from "../../../interfaces/interaction";
-import { MiauMessageCommandParam } from "../../../interfaces/messageCommand";
 import { SlashCommandParamType } from "../../../types/interactions";
 import MiauInteraction from "../interaction";
-import MiauMessageCommand from "../messageCommand";
 import MiauSlashCommand from "../slashCommand";
 import { ChatInputCommandInteraction } from "discord.js";
 
 export class MiauCommandResponse {
-    private readonly bParams: (MiauSlashCommandParam | MiauMessageCommandParam)[] | null;
+    // Esta clase es específica de SLASH (usa ChatInputCommandInteraction)
+    private readonly bParams: ReadonlyArray<MiauSlashCommandParam> | null;
 
     constructor(
         command: MiauInteraction,
         private readonly context: ChatInputCommandInteraction
     ) {
-        if (command instanceof MiauSlashCommand || command instanceof MiauMessageCommand) {
-            this.bParams = command.builder.params;
+        if (command instanceof MiauSlashCommand) {
+            // Asume que getParams() devuelve array. Si devuelve Record, usa Object.values().
+            const params = command.builder.getParams();
+            this.bParams = Array.isArray(params) ? params : Object.values(params);
         } else {
             this.bParams = null;
         }
     }
 
-    public get<T extends SlashCommandParamType>(customId: string, asType?: T): MiauSlashCommandParamResponse<T> {
+    public get<TType extends SlashCommandParamType = SlashCommandParamType>(
+        customId: string,
+        asType?: TType
+    ): MiauSlashCommandParamResponse<TType> {
         if (!this.bParams) throw new Error("Este comando no tiene parámetros definidos.");
 
-        const param = this.bParams.find(p => p.customId === customId) as MiauSlashCommandParam | undefined;
+        const param = this.bParams.find(p => p.customId === customId);
         if (!param) throw new Error(`Parámetro '${customId}' no está definido en el comando.`);
 
-        const valueRaw = this.context.options.get(customId)?.value;
-        const finalType = asType ?? param.type as T;
+        const valueOpt = this.context.options.get(customId)?.value;
+        const finalType = (asType ?? param.type) as TType;
 
-        if (valueRaw === undefined || valueRaw === null) {
+        if (valueOpt === undefined || valueOpt === null) {
             if (param.required) throw new Error(`El parámetro '${customId}' es obligatorio.`);
             return {
                 customId: param.customId,
                 name: param.name,
-                type: param.type as T,
+                type: finalType,
                 description: param.description,
                 required: param.required,
                 value: undefined as any
-            } as MiauSlashCommandParamResponse<T>;
+            } as MiauSlashCommandParamResponse<TType>;
         }
 
-        const value = this.convertValue(valueRaw, finalType);
-        this.validateValue(valueRaw, finalType);
+        const value = this.convertValue(valueOpt, finalType);
+        this.validateValue(valueOpt, finalType);
 
-        const response: Partial<MiauSlashCommandParamResponse<T>> = {
+        const response: Partial<MiauSlashCommandParamResponse<TType>> = {
             customId: param.customId,
             name: param.name,
-            type: param.type as T,
+            type: finalType,
             description: param.description,
             required: param.required,
             value: value as any
@@ -73,7 +77,7 @@ export class MiauCommandResponse {
             });
         }
 
-        return response as MiauSlashCommandParamResponse<T>;
+        return response as MiauSlashCommandParamResponse<TType>;
     }
 
     private readonly stringTypes = new Set<SlashCommandParamType>([
@@ -81,7 +85,9 @@ export class MiauCommandResponse {
         SlashParamTypes.TEXT, SlashParamTypes.WORD, SlashParamTypes.LETTER
     ]);
 
-    private readonly numberTypes = new Set<SlashCommandParamType>(["NUMBER", "INTEGER", SlashParamTypes.NUMBER, SlashParamTypes.INTEGER]);
+    private readonly numberTypes = new Set<SlashCommandParamType>([
+        "NUMBER", "INTEGER", SlashParamTypes.NUMBER, SlashParamTypes.INTEGER
+    ]);
 
     private isStringType(type: SlashCommandParamType): boolean {
         return this.stringTypes.has(type);
@@ -123,7 +129,7 @@ export class MiauCommandResponse {
         }
 
         if ((type === "NUMBER" || type === SlashParamTypes.NUMBER) && typeof value === 'number') {
-            const [_, decimals] = String(value).split('.') ?? [];
+            const [, decimals] = String(value).split('.') ?? [];
             if (decimals && decimals.length > 6) {
                 throw new Error(`El número tiene más decimales de lo permitido: ${value}`);
             }

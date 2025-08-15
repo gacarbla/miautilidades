@@ -2,93 +2,111 @@ import MiauSlashSubcommandBuilder from "./slashSubcommandBuilder";
 import client from "../../../..";
 import { interactionNameRegEx } from "../../../constants/discord";
 
-class MiauSlashSubcommandgroupBuilder {
-    constructor() { }
+class MiauSlashSubcommandgroupBuilder<
+    TSubs extends Record<string, MiauSlashSubcommandBuilder> = {}
+> {
+    constructor(init?: {
+        subcommands?: TSubs;
+        name?: string;
+        description?: string;
+    }) {
+        if (init?.subcommands) this.subcommands = init.subcommands;
+        if (init?.name) this.name = init.name;
+        if (init?.description) this.description = init.description;
+    }
 
-    private console = client.utils.console
+    private console = client.utils.console;
 
-    subcommands: MiauSlashSubcommandBuilder[] = []
-    name: string | undefined = undefined
-    description: string | undefined = undefined
+    // Estado tipado
+    private subcommands: TSubs = {} as TSubs;
+    name: string | undefined = undefined;
+    description: string | undefined = undefined;
 
     setName(name: string): this {
         if (name.length < 1 || name.length > 32) {
-            this.console.error(
-                ["error", "commandBuildError"],
-                "Tamaño incorrecto en el nombre. Debe ser de 1 a 32 caracteres."
-            );
+            this.console.error(["error", "commandBuildError"], "Tamaño incorrecto en el nombre. Debe ser de 1 a 32 caracteres.");
             throw new Error("El nombre debe tener entre 1 y 32 caracteres.");
         }
         if (name !== name.toLowerCase()) {
-            this.console.warning(
-                ["commandBuildError"],
-                "Los comandos slash no aceptan mayúsculas en su nombre."
-            );
+            this.console.warning(["commandBuildError"], "Los comandos slash no aceptan mayúsculas en su nombre.");
         }
         if (!interactionNameRegEx.test(name)) {
-            this.console.error(
-                ["error", "commandBuildError"],
-                "El nombre contiene caracteres inválidos."
-            );
+            this.console.error(["error", "commandBuildError"], "El nombre contiene caracteres inválidos.");
             throw new Error("El nombre contiene caracteres inválidos.");
         }
         this.name = name;
         return this;
     }
 
-
     setDescription(description: string): this {
         if (description.length < 1) {
-            this.console.error(
-                ["error", "commandBuildError"],
-                "La descripción debe tener al menos un carácter."
-            );
+            this.console.error(["error", "commandBuildError"], "La descripción debe tener al menos un carácter.");
             throw new Error("La descripción debe tener al menos un carácter.");
         }
         if (description.length > 100) {
-            this.console.warning(
-                ["commandBuildError"],
-                "La descripción no puede exceder los 100 caracteres."
-            );
-            description = description.substring(0, 100); // Recorta a 100 caracteres si es necesario
+            this.console.warning(["commandBuildError"], "La descripción no puede exceder los 100 caracteres.");
+            description = description.substring(0, 100);
         }
-        // TODO: Añadir verificación de que los caracteres empleados son válidos.
         this.description = description;
         return this;
     }
 
-    addSubcommand(s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder): this {
-        const subcommand = new MiauSlashSubcommandBuilder()
-        const apply = s(subcommand)
-        if (!apply.test()) throw new Error("El subcomando parece estar mal declarado.")
-        if (this.subcommands.length >= 25) throw new Error("Este grupo ya tiene 25 subcomandos.")
-        this.subcommands.push(apply)
-        return this
+    /**
+     * Añade un subcomando (builder function). Usa el `name` del subcomando como clave.
+     * Mantiene tu API actual y además lo guarda en un Record tipado para autocompletado.
+     */
+    addSubcommand(
+        s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder
+    ): this {
+        const sub = s(new MiauSlashSubcommandBuilder());
+
+        if (!sub.test()) throw new Error("El subcomando parece estar mal declarado.");
+        if (!sub.name) throw new Error("El subcomando debe tener nombre antes de añadirse.");
+        const key = sub.name;
+
+        const count = Object.keys(this.subcommands).length;
+        if (count >= 25) throw new Error("Este grupo ya tiene 25 subcomandos.");
+        if (this.subcommands[key as keyof TSubs]) {
+            this.console.error(["error", "commandBuildError"], `Subcomando duplicado: '${key}'.`);
+            throw new Error(`Ya existe un subcomando con nombre '${key}'.`);
+        }
+
+        (this.subcommands as Record<string, MiauSlashSubcommandBuilder>)[key] = sub;
+        return this;
+    }
+
+    // Acceso tipado (autocompletado por nombre de subcomando)
+    getSubcommands(): TSubs {
+        return this.subcommands;
+    }
+
+    // Helper para iterar/validar como array
+    getSubcommandsArray(): MiauSlashSubcommandBuilder[] {
+        return Object.values(this.subcommands);
     }
 
     test(): boolean {
         const nameOk =
-            typeof this.name === 'string' &&
+            typeof this.name === "string" &&
             interactionNameRegEx.test(this.name) &&
             this.name.length >= 1 &&
             this.name.length <= 32;
 
         const descOk =
-            typeof this.description === 'string' &&
+            typeof this.description === "string" &&
             this.description.length >= 1 &&
             this.description.length <= 100;
 
-        const allSubsValid =
-            this.subcommands.every(sub => sub.test());
+        const arr = this.getSubcommandsArray();
 
-        const countOk =
-            this.subcommands.length >= 1 &&
-            this.subcommands.length <= 25;
+        const allSubsValid = arr.every((sub) => sub.test());
+        const countOk = arr.length >= 1 && arr.length <= 25;
 
-        return nameOk && descOk && allSubsValid && countOk;
+        // unicidad por nombre
+        const noDup = new Set(arr.map(s => s.name)).size === arr.length;
+
+        return nameOk && descOk && allSubsValid && countOk && noDup;
     }
-
-
 
     toJSON() {
         if (!this.test()) {
@@ -100,18 +118,21 @@ class MiauSlashSubcommandgroupBuilder {
             name: this.name!.toLowerCase(),
             description: this.description!,
             type: 2, // Subcommand Group
-            options: this.subcommands.map(s => s.toJSON())
+            options: this.getSubcommandsArray().map((s) => s.toJSON())
         };
     }
 
-    exportHelp(): { name: string, description: string, subcommands: ReturnType<MiauSlashSubcommandBuilder['exportHelp']>[] } {
+    exportHelp(): {
+        name: string;
+        description: string;
+        subcommands: ReturnType<MiauSlashSubcommandBuilder["exportHelp"]>[];
+    } {
         return {
             name: this.name ?? "desconocido",
             description: this.description ?? "",
-            subcommands: this.subcommands.map(s => s.exportHelp())
+            subcommands: this.getSubcommandsArray().map((s) => s.exportHelp())
         };
     }
-
 }
 
-export default MiauSlashSubcommandgroupBuilder
+export default MiauSlashSubcommandgroupBuilder;
