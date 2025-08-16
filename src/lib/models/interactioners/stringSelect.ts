@@ -7,11 +7,11 @@ export default class MiauStringSelect extends MiauSelect {
     constructor(data: Omit<MiauStringSelectDefaultData, 'type'>) {
         super({...data, type: ComponentType.StringSelect});
     }
-    override async execution(context: StringSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<void> {
+    override async execution(context: StringSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<any> {
         await context.reply({ content: "Menú de selección de canal respondido, pero no se ha definido acción específica." });
     }
 
-    override setExecution(f: (context: StringSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
+    override setExecution(f: (context: StringSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<any>): this {
         this.execution = f;
         return this
     }

@@ -17,7 +17,7 @@ class MiauMessageSubcommandBuilder<
         params?: TParams;
         name?: string;
         description?: string;
-        execution?: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => Promise<void>;
+        execution?: (message: Message, params: ProtectedCollection<MiauMessageCommandParamResponse>) => Promise<any>;
     }) {
         if (init?.params) this.params = init.params;
         if (init?.name) this.name = init.name;
@@ -29,7 +29,7 @@ class MiauMessageSubcommandBuilder<
     async execution(
         message: Message,
         _: ProtectedCollection<MiauMessageCommandParamResponse>
-    ): Promise<void> {
+    ): Promise<any> {
         await message.reply("¡Hola! No tengo ni idea de qué hace ese comando...");
     }
 
@@ -48,7 +48,7 @@ class MiauMessageSubcommandBuilder<
         f: (
             message: Message,
             params: ProtectedCollection<MiauMessageCommandParamResponse>
-        ) => Promise<void>
+        ) => Promise<any>
     ): this {
         this.execution = f;
         return this;

@@ -6,8 +6,8 @@ export default class MiauUserContextMenu extends MiauContextMenu {
         super(ApplicationCommandType.User, name)
     }
     
-    override setExecution(fun: (interaction: UserContextMenuCommandInteraction) => Promise<void>): this {
-        (this.execution as (interaction: UserContextMenuCommandInteraction) => Promise<void>) = fun;
+    override setExecution(fun: (interaction: UserContextMenuCommandInteraction) => Promise<any>): this {
+        (this.execution as (interaction: UserContextMenuCommandInteraction) => Promise<any>) = fun;
         return this;
     }
 }

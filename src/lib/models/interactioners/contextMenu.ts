@@ -11,12 +11,12 @@ export default class MiauContextMenu extends MiauInteraction {
             .setType(type as ContextMenuCommandType);
     }
 
-    override async execution(interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction): Promise<void> {
+    override async execution(interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction): Promise<any> {
         await interaction.reply({ content: 'Comando recibido, pero... No sé qué debo hacer ahora...', ephemeral: true });
     }
 
-    override setExecution(fun: (interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction) => Promise<void>): this {
-        (this.execution as (interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction) => Promise<void>) = fun;
+    override setExecution(fun: (interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction) => Promise<any>): this {
+        (this.execution as (interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction) => Promise<any>) = fun;
         return this;
     }
 
@@ -24,7 +24,7 @@ export default class MiauContextMenu extends MiauInteraction {
         return this.data.toJSON();
     }
 
-    override async execute(interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction): Promise<void> {
+    override async execute(interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction): Promise<any> {
         try {
             const passed = await this.checkPreconditions(interaction);
             if (!passed) {

@@ -24,6 +24,7 @@ export interface logRulesSchema {
 
     commandBuildLog?: boolean
     commandBuildError?: boolean
+    commandBuildWarn?: boolean
     commandPreconditionsBuildLog?: boolean
     commandPreconditionsBuildError?: boolean
     commandExecutionLog?: boolean

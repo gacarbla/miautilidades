@@ -83,7 +83,7 @@ export default class MiauSelect extends MiauInteraction {
      * 
      * Intenta no modificarla de forma directa, utiliza `setExecution`.
      */
-    override async execution(context: AnySelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<void> {
+    override async execution(context: AnySelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<any> {
         await context.reply({ content: "Select Menu respondido, pero no se ha definido acción específica.", ephemeral: true });
     }
 
@@ -154,7 +154,7 @@ export default class MiauSelect extends MiauInteraction {
      * })
      * ```
      */
-    override setExecution(f: (context: AnySelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
+    override setExecution(f: (context: AnySelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<any>): this {
         this.execution = f;
         return this
     }

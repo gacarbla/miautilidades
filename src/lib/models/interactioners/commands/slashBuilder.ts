@@ -1,11 +1,14 @@
 import client from "../../../.."
 import { interactionNameRegEx } from "../../../constants/discord"
+import { SlashParamTypes } from "../../../enum/interactions"
 import { MiauSlashCommandDefaultData, MiauSlashCommandParam } from "../../../interfaces/interaction"
+import { ParamsFrom } from "../../../types/slashCommands"
 import Preconditions from "../../preconditions"
 import MiauSlashSubcommandBuilder from "./slashSubcommandBuilder"
 import MiauSlashSubcommandgroupBuilder from "./slashSubcommandgroupBuilder"
+import { ApplicationCommandOptionType, ChatInputCommandInteraction } from "discord.js"
 
-class MiauSlashCommandBuilder<
+export class MiauSlashCommandBuilder<
     TParams extends Record<string, MiauSlashCommandParam> = {}
 > {
 
@@ -25,6 +28,47 @@ class MiauSlashCommandBuilder<
     subcommands: any[] = [];
     subcommandgroups: any[] = [];
     private preconditions: any[] = [];
+
+    private toDiscordOptionType(t: MiauSlashCommandParam["type"]): ApplicationCommandOptionType {
+        if (typeof t === "string") {
+            switch (t) {
+                case "LETTER":
+                case "WORD":
+                case "TEXT": return ApplicationCommandOptionType.String;
+                case "NUMBER": return ApplicationCommandOptionType.Number;
+                case "INTEGER": return ApplicationCommandOptionType.Integer;
+                case "BOOLEAN": return ApplicationCommandOptionType.Boolean;
+                case "USER":
+                case "MEMBER": return ApplicationCommandOptionType.User; // MEMBER se resuelve como USER
+                case "ROLE": return ApplicationCommandOptionType.Role;
+                case "CHANNEL": return ApplicationCommandOptionType.Channel;
+                case "MENTIONABLE": return ApplicationCommandOptionType.Mentionable;
+                case "ATTACHMENT": return ApplicationCommandOptionType.Attachment;
+                default: throw new Error(`Tipo de slash no soportado: ${String(t)}`);
+            }
+        }
+        switch (t) {
+            case SlashParamTypes.LETTER:
+            case SlashParamTypes.WORD:
+            case SlashParamTypes.TEXT: return ApplicationCommandOptionType.String;
+            case SlashParamTypes.NUMBER: return ApplicationCommandOptionType.Number;
+            case SlashParamTypes.INTEGER: return ApplicationCommandOptionType.Integer;
+            case SlashParamTypes.BOOLEAN: return ApplicationCommandOptionType.Boolean;
+            case SlashParamTypes.USER:
+            case SlashParamTypes.MEMBER: return ApplicationCommandOptionType.User;
+            case SlashParamTypes.ROLE: return ApplicationCommandOptionType.Role;
+            case SlashParamTypes.CHANNEL: return ApplicationCommandOptionType.Channel;
+            case SlashParamTypes.MENTIONABLE: return ApplicationCommandOptionType.Mentionable;
+            case SlashParamTypes.ATTACHMENT: return ApplicationCommandOptionType.Attachment;
+            default: throw new Error(`Tipo de slash (enum) no soportado: ${String(t)}`);
+        }
+    }
+
+    private isTextType(t: MiauSlashCommandParam["type"]): boolean {
+        return typeof t === "string"
+            ? t === "LETTER" || t === "WORD" || t === "TEXT"
+            : t === SlashParamTypes.LETTER || t === SlashParamTypes.WORD || t === SlashParamTypes.TEXT;
+    }
 
     addPreconditions(...preconditions: Preconditions[]): this {
         this.preconditions.push(...preconditions);
@@ -74,7 +118,6 @@ class MiauSlashCommandBuilder<
         } as TParams & { [K in P["customId"]]: P };
 
         return new MiauSlashCommandBuilder<TParams & { [K in P["customId"]]: P }>({
-            // si tu constructor acepta estado inicial:
             params: nextParams,
             subcommands: this.subcommands,
             subcommandgroups: this.subcommandgroups,
@@ -119,25 +162,52 @@ class MiauSlashCommandBuilder<
     }
 
     toJSON(data: MiauSlashCommandDefaultData) {
-        if (!this.test(data)) {
-            throw new Error("El comando no es válido.");
-        }
+        if (!this.test(data)) throw new Error("El comando no es válido.");
+
+        const options =
+            this.subcommands.length > 0
+                ? this.subcommands.map(s => s.toJSON())
+                : this.subcommandgroups.length > 0
+                    ? this.subcommandgroups.map(g => g.toJSON())
+                    : this.paramsToOptionsJSON();
 
         return {
             name: data.name.toLowerCase(),
             description: data.description,
-            options: this.subcommands.length > 0
-                ? this.subcommands.map(s => s.toJSON())
-                : this.subcommandgroups.length > 0
-                    ? this.subcommandgroups.map(g => g.toJSON())
-                    : Object.values(this.params).map(p => ({
-                        type: p.type,
-                        name: p.customId,
-                        description: p.description,
-                        required: p.required ?? false,
-                        choices: p.choices ?? undefined
-                    }))
+            options
         };
+    }
+
+    private paramsToOptionsJSON() {
+        const arr = Object.values(this.params);
+
+        // required primero (Discord lo exige)
+        const ordered = [...arr.filter(p => p.required), ...arr.filter(p => !p.required)];
+
+        return ordered.map((param) => {
+            const optionType = this.toDiscordOptionType(param.type);
+            const base: any = {
+                type: optionType,
+                name: String(param.customId).toLowerCase(),
+                description: param.description,
+                required: param.required ?? false
+            };
+
+            // choices sólo para texto
+            if (this.isTextType(param.type) && "choices" in param && Array.isArray((param as any).choices)) {
+                base.choices = (param as any).choices;
+            }
+
+            // pasa constraints si existen
+            if ("min_value" in param) base.min_value = (param as any).min_value;
+            if ("max_value" in param) base.max_value = (param as any).max_value;
+            if ("min_length" in param) base.min_length = (param as any).min_length;
+            if ("max_length" in param) base.max_length = (param as any).max_length;
+            if ("channel_types" in param) base.channel_types = (param as any).channel_types;
+            if ("autocomplete" in param) base.autocomplete = (param as any).autocomplete;
+
+            return base;
+        });
     }
 
     exportHelp(data: MiauSlashCommandDefaultData): any {
@@ -145,7 +215,7 @@ class MiauSlashCommandBuilder<
             name: data.name,
             description: data.description,
             type: this.subcommands.length > 0 ? 'subcommands' :
-                this.subcommandgroups.length > 0 ? 'groups' : 'params',
+                this.subcommandgroups.length > 0 ? 'groups' : 'command',
             content:
                 this.subcommands.length > 0 ? this.subcommands.map(s => s.exportHelp()) :
                     this.subcommandgroups.length > 0 ? this.subcommandgroups.map(g => g.exportHelp()) :
@@ -153,6 +223,30 @@ class MiauSlashCommandBuilder<
         };
     }
 
+    async execution(
+        interaction: ChatInputCommandInteraction,
+        params: ParamsFrom<TParams>
+    ): Promise<any> {
+        try {
+            void params
+            if (!interaction.deferred && !interaction.replied) {
+                await interaction.reply({
+                    content: "⚠️ Este comando no tiene una ejecución definida.",
+                    ephemeral: true
+                });
+            }
+        } catch { }
+    }
+
+    setExecution(
+        f: (interaction: ChatInputCommandInteraction, params: ParamsFrom<TParams>) => Promise<any>
+    ): this {
+        if (typeof f !== "function") {
+            throw new TypeError("setExecution requiere una función asíncrona válida.");
+        }
+        this.execution = f;
+        return this;
+    }
 }
 
 export default MiauSlashCommandBuilder

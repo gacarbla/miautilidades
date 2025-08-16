@@ -1,4 +1,5 @@
 import ConsoleController from "./console"
+import { ErrorUtils } from "./errors"
 import InteractionUtils from "./interactions"
 
 class Counter {
@@ -27,9 +28,11 @@ export default class Utils {
     Counter:typeof Counter = Counter
     Interactions:typeof InteractionUtils = InteractionUtils
     console:ConsoleController = new ConsoleController()
+    errorUtils = ErrorUtils
 }
 
 export {
     Counter,
-    InteractionUtils
+    InteractionUtils,
+    ErrorUtils
 }

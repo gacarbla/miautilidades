@@ -7,16 +7,18 @@ const info = new MiauSlashCommand({
     isRestricted: false
 })
 
-const builder = info.builder
-    .addParam({
-        customId: 'pages',
-        name: 'page',
-        required: false,
-        description: 'Página de información que quieres ver',
-        type: SlashParamTypes.INTEGER
-    })
-
-const p = builder.getParams()
-p
+export const info_builder = info.setBuilder(
+    info.builder
+        .addParam({
+            customId: "mention",
+            description: "Usuario a mencionar",
+            name: "mencionar",
+            required: true,
+            type: SlashParamTypes.USER
+        })
+        .setExecution(async (i, p) => {
+            i.reply({ content: `${i.member} menciona a ${p.mention}` })
+        })
+)
 
 export default info

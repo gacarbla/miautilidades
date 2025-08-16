@@ -65,10 +65,10 @@ export default abstract class MiauInteraction {
         return results.some(result => result);
     }
 
-	abstract execution?(context: Message | Interaction, params?: any): Promise<void>;
+	abstract execution?(context: Message | Interaction, params?: any): Promise<any>;
 
-    setExecution?(fun: (context: Message | Interaction) => Promise<void>): this {
-        (this.execution as (context: Message | Interaction) => Promise<void>) = fun;
+    setExecution?(fun: (context: Message | Interaction) => Promise<any>): this {
+        (this.execution as (context: Message | Interaction) => Promise<any>) = fun;
         return this
     }
 

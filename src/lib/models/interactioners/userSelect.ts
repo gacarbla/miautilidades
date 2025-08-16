@@ -8,11 +8,11 @@ export default class MiauUserSelect extends MiauSelect {
         super({...data, type: ComponentType.UserSelect});
     }
 
-    override async execution(context: UserSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<void> {
+    override async execution(context: UserSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<any> {
         await context.reply({ content: "Menú de selección de canal respondido, pero no se ha definido acción específica." });
     }
 
-    override setExecution(f: (context: UserSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
+    override setExecution(f: (context: UserSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<any>): this {
         this.execution = f;
         return this
     }

@@ -66,7 +66,7 @@ interface MiauEventDefaultData {
 export default class MiauEvent {
     private data: MiauEventDefaultData;
     private trigger: MiauEventType | undefined;
-    private execution?: (...args: any[]) => Promise<void>;
+    private execution?: (...args: any[]) => Promise<any>;
 
     get id() {
         return this.data.customId;
@@ -80,13 +80,13 @@ export default class MiauEvent {
         this.data = data;
     }
 
-    async execute(...args: any[]): Promise<void> {
+    async execute(...args: any[]): Promise<any> {
         if (this.execution) {
             await this.execution(...args);
         }
     }
 
-    async setExecution<T extends MiauEventType>(event: T, f: (...args: EventArgumentsMap[T]) => Promise<void>): Promise<void> {
+    async setExecution<T extends MiauEventType>(event: T, f: (...args: EventArgumentsMap[T]) => Promise<any>): Promise<any> {
         this.trigger = event;
         this.execution = (...args: any[]) => f(...(args as EventArgumentsMap[T]));
     }

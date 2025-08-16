@@ -152,7 +152,7 @@ export default class MiauButton extends MiauInteraction {
      * 
      * Intenta no modificarla de forma directa, utiliza `setExecution`.
      */
-    override async execution(context: ButtonInteraction): Promise<void> {
+    override async execution(context: ButtonInteraction): Promise<any> {
         await context.reply({ content: "¡Qué bien, el botón funciona!\nPero... Mi programador no me ha dicho qué tengo que hacer ahora...", ephemeral: true });
     }
 
@@ -168,7 +168,7 @@ export default class MiauButton extends MiauInteraction {
      * })
      * ```
      */
-    override setExecution(f: (context: ButtonInteraction) => Promise<void>): this {
+    override setExecution(f: (context: ButtonInteraction) => Promise<any>): this {
         this.execution = f;
         return this
     }

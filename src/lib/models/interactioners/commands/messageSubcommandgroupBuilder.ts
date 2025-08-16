@@ -17,7 +17,7 @@ class MiauMessageSubcommandgroupBuilder<
         execution?: (
             message: Message,
             params: ProtectedCollection<MiauMessageCommandParamResponse>
-        ) => Promise<void>;
+        ) => Promise<any>;
     }) {
         if (init?.params) this.params = init.params;
         if (init?.subcommands) this.subcommands = init.subcommands;
@@ -35,7 +35,7 @@ class MiauMessageSubcommandgroupBuilder<
     async execution(
         message: Message,
         _: ProtectedCollection<MiauMessageCommandParamResponse>
-    ): Promise<void> {
+    ): Promise<any> {
         await message.reply("¡Hola! No tengo ni idea de qué se supone que debo hacer :D");
     }
 
@@ -53,7 +53,7 @@ class MiauMessageSubcommandgroupBuilder<
         f: (
             message: Message,
             params: ProtectedCollection<MiauMessageCommandParamResponse>
-        ) => Promise<void>
+        ) => Promise<any>
     ): this {
         this.execution = f;
         return this;

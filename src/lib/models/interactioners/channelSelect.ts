@@ -65,11 +65,11 @@ export default class MiauChannelSelect extends MiauSelect {
         super({...data, type: ComponentType.ChannelSelect});
     }
 
-    override async execution(context: ChannelSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<void> {
+    override async execution(context: ChannelSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<any> {
         await context.reply({ content: "Menú de selección de canal respondido, pero no se ha definido acción específica.", ephemeral: true });
     }
 
-    override setExecution(f: (context: ChannelSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
+    override setExecution(f: (context: ChannelSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<any>): this {
         this.execution = f;
         return this
     }

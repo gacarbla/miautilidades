@@ -102,7 +102,7 @@ export default class MiauMessageCommand extends MiauInteraction {
      * Se recomienda encarecidamente **NO** modificarla ni declararla siquiera en
      * el código. Por favor, intenta utilizar el valor por defecto.
      */
-    override async execution(context: Message): Promise<void> {
+    override async execution(context: Message): Promise<any> {
         await context.reply({content: '¡Dato curioso!\n¿Sabías que ves este mensaje porque mi desarrollador no ha terminado de programarme y es un perezoso al que le lleva 2 meses hacer un handler?'})
     }
 

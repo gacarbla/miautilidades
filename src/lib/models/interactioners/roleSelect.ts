@@ -8,11 +8,11 @@ export default class MiauRoleSelect extends MiauSelect {
         super({...data, type: ComponentType.RoleSelect});
     }
 
-    override async execution(context: RoleSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<void> {
+    override async execution(context: RoleSelectMenuInteraction, _: ProtectedCollection<string|number>): Promise<any> {
         await context.reply({ content: "Menú de selección de mencionable respondido, pero no se ha definido acción específica.", ephemeral: true });
     }
 
-    override setExecution(f: (context: RoleSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<void>): this {
+    override setExecution(f: (context: RoleSelectMenuInteraction, params: ProtectedCollection<string|number>) => Promise<any>): this {
         this.execution = f;
         return this
     }

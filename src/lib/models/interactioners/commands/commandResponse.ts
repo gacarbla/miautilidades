@@ -136,3 +136,5 @@ export class MiauCommandResponse {
         }
     }
 }
+
+export default MiauCommandResponse

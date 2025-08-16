@@ -1,4 +1,4 @@
-import { ButtonBuilder, Client, ClientOptions } from "discord.js";
+import { ButtonBuilder, Client, ClientOptions, Message, OmitPartialGroupDMChannel } from "discord.js";
 import Collection from "./collection";
 import path from "path";
 import { pathToFileURL } from 'url';
@@ -110,6 +110,12 @@ class MiauClient extends Client {
         this.login(token)
     }
 
+    async forceMsgCommand(cmd:string, message: OmitPartialGroupDMChannel<Message<boolean>>): Promise<void> {
+        const comando = this.interactions.message.get(cmd)
+        if (!comando) throw new Error("El comando indicado no existe: "+cmd)
+        await comando.execute(message)
+    }
+
     load = async (): Promise<void> => {
         if (settings.refreshInteractions) {
             this.refreshInteractions()
@@ -134,6 +140,8 @@ class MiauClient extends Client {
 
         this.on("messageCreate", msg => {
             this.events.messages?.created?.forEach(e => e.execute(msg));
+            if (!msg.content) return
+            if (!msg.content.startsWith(this.params.defaultPrefix)) return
         });
 
         this.on("messageDelete", msg => {
@@ -233,7 +241,6 @@ class MiauClient extends Client {
                     const fileUrl = pathToFileURL(fullPath).href;
                     const imported = await import(fileUrl);
 
-                    // Evita que 'default' sea un contenedor duplicado
                     const exportList = Object.values(imported).flatMap(v =>
                         typeof v === "object" && v !== null && "default" in v
                             ? Object.values(v)
