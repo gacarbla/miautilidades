@@ -34,6 +34,7 @@ export interface logRulesSchema {
 
     interactionBuildLog?: boolean
     interactionBuildError?: boolean
+    interactionBuildWarn?: boolean
     interactionPreconditionsBuildLog?: boolean
     interactionPreconditionsBuildError?: boolean
     interactionExecutionLog?: boolean

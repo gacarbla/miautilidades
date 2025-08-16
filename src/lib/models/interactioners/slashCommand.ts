@@ -21,8 +21,6 @@ export default class MiauSlashCommand extends MiauInteraction {
         return this.builder.toJSON(this.data);
     }
 
-    // ───────────────────────────────── helpers tipos ─────────────────────────────────
-
     private toDiscordOptionType(t: MiauSlashCommandParam["type"]): ApplicationCommandOptionType {
         if (typeof t === "string") {
             switch (t) {
@@ -96,7 +94,6 @@ export default class MiauSlashCommand extends MiauInteraction {
         }
     }
 
-    /** Resuelve params para un registro { [customId]: param } (comando o sub) */
     private resolveParamsFromRecord(
         interaction: ChatInputCommandInteraction,
         record: Record<string, MiauSlashCommandParam>
@@ -148,8 +145,6 @@ export default class MiauSlashCommand extends MiauInteraction {
         }
         return out;
     }
-
-    // ─────────────────────────────── helpers colecciones ───────────────────────────────
 
     private getName(x: any): string | undefined {
         return x?.name ?? x?.getName?.() ?? x?.data?.name;
@@ -204,8 +199,6 @@ export default class MiauSlashCommand extends MiauInteraction {
         return arr.find(s => this.getName(s)?.toLowerCase() === target);
     }
 
-    // ─────────────────────────────────── ejecución ────────────────────────────────────
-
     override async execute(context: ChatInputCommandInteraction): Promise<any> {
         try {
             const hasGroups =
@@ -217,7 +210,6 @@ export default class MiauSlashCommand extends MiauInteraction {
                     ? this.builder.subcommands.length > 0
                     : !!this.builder.subcommands;
 
-            // 1) Comando con parámetros directos (sin subcomandos/grupos)
             if (!hasGroups && !hasSubs) {
                 await this.runPreconditions(this.builder.getPreconditions?.(), context);
 
@@ -228,9 +220,7 @@ export default class MiauSlashCommand extends MiauInteraction {
                 return;
             }
 
-            // 2) Grupo + Subcomando
             if (hasGroups) {
-                // ⚠️ getSubcommandGroup(false) -> string | null
                 const groupName = context.options.getSubcommandGroup(false) ?? undefined;
                 const subName = context.options.getSubcommand(true);
 
@@ -250,12 +240,10 @@ export default class MiauSlashCommand extends MiauInteraction {
                     throw new Error(`Subcomando '${subName}' no encontrado en el grupo '${groupName}'.`);
                 }
 
-                // Precondiciones en cascada
                 await this.runPreconditions(this.builder.getPreconditions?.(), context);
                 await this.runPreconditions(group.getPreconditions?.(), context);
                 await this.runPreconditions(sub.getPreconditions?.(), context);
 
-                // Resolver parámetros del subcomando
                 const parsed = typeof sub.resolveParams === "function"
                     ? sub.resolveParams(context)
                     : this.resolveParamsFromRecord(
@@ -271,7 +259,6 @@ export default class MiauSlashCommand extends MiauInteraction {
                 return;
             }
 
-            // 3) Subcomando directo (sin grupos)
             {
                 const subName = context.options.getSubcommand(true);
                 const subsArr = this.asArray<any>((this.builder as any).subcommands);

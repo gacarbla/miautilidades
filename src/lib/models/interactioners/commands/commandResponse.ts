@@ -9,7 +9,6 @@ import MiauSlashCommand from "../slashCommand";
 import { ChatInputCommandInteraction } from "discord.js";
 
 export class MiauCommandResponse {
-    // Esta clase es específica de SLASH (usa ChatInputCommandInteraction)
     private readonly bParams: ReadonlyArray<MiauSlashCommandParam> | null;
 
     constructor(
@@ -17,7 +16,6 @@ export class MiauCommandResponse {
         private readonly context: ChatInputCommandInteraction
     ) {
         if (command instanceof MiauSlashCommand) {
-            // Asume que getParams() devuelve array. Si devuelve Record, usa Object.values().
             const params = command.builder.getParams();
             this.bParams = Array.isArray(params) ? params : Object.values(params);
         } else {

@@ -1,15 +1,24 @@
-import { MiauMessageCommand } from "../../../lib/models/interactions";
+import { MessageFlags } from "discord.js";
+import { MiauSlashCommand } from "../../../lib/models/interactions";
 
-const ping = new MiauMessageCommand({
+const ping = new MiauSlashCommand({
     name: "ping",
-    alias: ["pong"],
-    description: "Responde con \"pong!\"",
-    isRestricted: false
+    description: "¡Responde pong!",
+    isRestricted: false,
 });
 
-export const ping_builder = ping.builder
-    .setExecution(async (message, _) => {
-        message.reply({content: "Pong!"})
-    })
+export const ping_builder = (ping.builder =
+    ping.builder.setExecution(async (i) => {
+        const sent = await i.reply({
+            content: "🏓 Pong...",
+            flags: MessageFlags.Ephemeral,
+            fetchReply: true,
+        });
 
-export default ping
+        const rtt = sent.createdTimestamp - i.createdTimestamp;
+        const ws = Math.round(i.client.ws.ping);
+
+        await i.editReply(`🏓 Pong!\n⏱️ RTT: ${rtt}ms • WS: ${ws}ms`);
+    }));
+
+export default ping;

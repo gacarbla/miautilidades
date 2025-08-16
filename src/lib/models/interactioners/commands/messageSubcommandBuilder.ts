@@ -8,7 +8,6 @@ import { ProtectedCollection } from "../../collection";
 class MiauMessageSubcommandBuilder<
     TParams extends Record<string, MiauMessageCommandParam> = {}
 > {
-    // Estado tipado
     private params: TParams = {} as TParams;
     name: string | undefined = undefined;
     description: string | undefined = undefined;
@@ -25,7 +24,6 @@ class MiauMessageSubcommandBuilder<
         if (init?.execution) this.execution = init.execution;
     }
 
-    // --- ejecución por defecto ---
     async execution(
         message: Message,
         _: ProtectedCollection<MiauMessageCommandParamResponse>
@@ -33,7 +31,6 @@ class MiauMessageSubcommandBuilder<
         await message.reply("¡Hola! No tengo ni idea de qué hace ese comando...");
     }
 
-    // --- setters “in place” (no cambian el tipo genérico) ---
     setName(name: string): this {
         this.name = name;
         return this;
@@ -54,18 +51,15 @@ class MiauMessageSubcommandBuilder<
         return this;
     }
 
-    // --- addParam con key explícita (infiere y acumula tipo) ---
     addParam<K extends string, P extends MiauMessageCommandParam>(
         key: K,
         param: P
     ): MiauMessageSubcommandBuilder<TParams & Record<K, P>>;
 
-    // --- addParam usando param.customId como key (si lo prefieres) ---
     addParam<P extends MiauMessageCommandParam & { customId: string }>(
         param: P
     ): MiauMessageSubcommandBuilder<TParams & Record<P["customId"], P>>;
 
-    // --- implementación única ---
     addParam(a: any, b?: any): any {
         const key: string = typeof a === "string" ? a : a.customId;
         const param: MiauMessageCommandParam =
@@ -78,7 +72,6 @@ class MiauMessageSubcommandBuilder<
             [key]: param
         } as any;
 
-        // Devolvemos NUEVA instancia con tipo acumulado (fluida e inmutable)
         return new MiauMessageSubcommandBuilder({
             params: nextParams,
             name: this.name,
@@ -87,7 +80,6 @@ class MiauMessageSubcommandBuilder<
         });
     }
 
-    // --- acceso tipado y helpers ---
     getParams(): TParams {
         return this.params;
     }

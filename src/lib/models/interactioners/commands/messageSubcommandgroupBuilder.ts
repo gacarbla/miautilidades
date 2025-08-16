@@ -26,7 +26,6 @@ class MiauMessageSubcommandgroupBuilder<
         if (init?.execution) this.execution = init.execution;
     }
 
-    // Estado
     private params: TParams = {} as TParams;
     subcommands: MiauMessageSubcommandBuilder[] = [];
     name: string | undefined = undefined;
@@ -67,18 +66,15 @@ class MiauMessageSubcommandgroupBuilder<
         return this;
     }
 
-    // --- addParam con key explícita ---
     addParam<K extends string, P extends MiauMessageCommandParam>(
         key: K,
         param: P
     ): MiauMessageSubcommandgroupBuilder<TParams & Record<K, P>>;
 
-    // --- addParam usando param.customId como key ---
     addParam<P extends MiauMessageCommandParam & { customId: string }>(
         param: P
     ): MiauMessageSubcommandgroupBuilder<TParams & Record<P["customId"], P>>;
 
-    // Implementación
     addParam(a: any, b?: any): any {
         const key: string = typeof a === "string" ? a : a.customId;
         const param: MiauMessageCommandParam =
@@ -100,7 +96,6 @@ class MiauMessageSubcommandgroupBuilder<
         });
     }
 
-    // Acceso tipado y helpers
     getParams(): TParams {
         return this.params;
     }

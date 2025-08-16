@@ -181,7 +181,6 @@ export class MiauSlashCommandBuilder<
     private paramsToOptionsJSON() {
         const arr = Object.values(this.params);
 
-        // required primero (Discord lo exige)
         const ordered = [...arr.filter(p => p.required), ...arr.filter(p => !p.required)];
 
         return ordered.map((param) => {
@@ -193,12 +192,10 @@ export class MiauSlashCommandBuilder<
                 required: param.required ?? false
             };
 
-            // choices sólo para texto
             if (this.isTextType(param.type) && "choices" in param && Array.isArray((param as any).choices)) {
                 base.choices = (param as any).choices;
             }
 
-            // pasa constraints si existen
             if ("min_value" in param) base.min_value = (param as any).min_value;
             if ("max_value" in param) base.max_value = (param as any).max_value;
             if ("min_length" in param) base.min_length = (param as any).min_length;

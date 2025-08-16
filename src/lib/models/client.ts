@@ -21,69 +21,7 @@ class MiauClient extends Client {
         this.params = mjs_params
     }
 
-    events: MiauClientEventsObject = {
-        bot: { join: [], leave: [] },
-        guild: {
-            nameUpdate: [],
-            descriptionUpdate: [],
-            otherUpdates: [],
-            invite: { added: [], removed: [], updated: [] },
-            emoji: { added: [], removed: [], updated: [] },
-            sticker: { added: [], removed: [], updated: [] },
-            bot: {
-                newGuild: [], rejoinGuild: [], leaveGuild: [],
-                ban: [], unban: [], restrict: [], unrestrict: [],
-                newNotification: []
-            },
-            members: {
-                join: [], leave: [], botJoin: [], botLeave: [],
-                avatarUpdate: [], serverAvatarUpdate: [],
-                nicknameUpdate: [], displayNameUpdate: [],
-                usernameUpdate: [], giveRole: [], removeRole: []
-            },
-            roles: { create: [], update: [], delete: [] },
-            channels: { create: [], update: [], delete: [] },
-            staff: {
-                add: [], remove: [], upgrade: [], downgrade: [],
-                suspiciusActivity: [], goodJob: []
-            },
-            discordAutomod: { messageBlocked: [], usernameBlocked: [] },
-            botAutomod: {
-                ia: {
-                    enabled: [], disabled: [],
-                    messageBlocked: [], suspiciusMessage: [],
-                    suspiciusActivity: []
-                },
-                enabled: [], disabled: [], suspiciusActivity: []
-            },
-            webhooks: { create: [], update: [], delete: [] },
-            sanctions: {
-                ban: [], unban: [], warn: [], txtMute: [], vcMute: [], globalMute: [],
-                txtUnmute: [], vcUnmute: [], globalUnmute: [],
-                softban: [], kick: [], tempban: [], removeSanction: []
-            },
-            moderation: { messageDeleted: [], bulkMessageDeleted: [] }
-        },
-        users: {
-            profile: {
-                avatarUpdate: [], usernameUpdate: [],
-                displayNameUpdate: [], nicknameUpdate: [],
-                serverAvatarUpdate: []
-            },
-            member: { join: [], leave: [], giveRole: [], removeRole: [] },
-            guildBan: { banned: [], failedBan: [], unbanned: [] },
-            guildKick: { kicked: [], failedKick: [], joinAfterKick: [] },
-            voice: {
-                join: [], leave: [], disconnect: [], move: [], moved: [],
-                muted: [], unmuted: [], deafened: [], undeafened: [],
-                serverMuted: [], serverUnmuted: [],
-                serverDeafened: [], serverUndeafened: [],
-                startVideo: [], endVideo: [],
-                startStreaming: [], endStreaming: []
-            }
-        },
-        messages: { created: [], deleted: [], edited: [] }
-    }
+    events: MiauClientEventsObject = {}
 
     interactions = {
         getDeployJSON: () => {
@@ -110,24 +48,33 @@ class MiauClient extends Client {
         this.login(token)
     }
 
-    async forceMsgCommand(cmd:string, message: OmitPartialGroupDMChannel<Message<boolean>>): Promise<void> {
+    async forceMsgCommand(cmd: string, message: OmitPartialGroupDMChannel<Message<boolean>>): Promise<void> {
         const comando = this.interactions.message.get(cmd)
-        if (!comando) throw new Error("El comando indicado no existe: "+cmd)
+        if (!comando) throw new Error("El comando indicado no existe: " + cmd)
         await comando.execute(message)
     }
 
     load = async (): Promise<void> => {
         if (settings.refreshInteractions) {
-            this.refreshInteractions()
+            this.refreshInteractions();
         }
 
+        // ⬇️ Carga de eventos
+        try {
+            await this.loadEvents();
+            this.utils.console.success(["interactionBuildLog"], "Eventos cargados correctamente");
+        } catch (err) {
+            this.utils.console.error(["interactionBuildError"], "Error cargando eventos: " + err);
+        }
+
+        // ... el resto de tus listeners
         this.on("ready", () => {
             this.utils.console.success(["startLog"], `Cliente iniciado como ${this.user?.tag}`);
         });
 
         this.on("interactionCreate", async (interaction) => {
             if (interaction.isChatInputCommand()) {
-                this.utils.console.log(["commandExecutionLog"], "Nueva ejecución de comando: /"+interaction.commandName)
+                this.utils.console.log(["commandExecutionLog"], "Nueva ejecución de comando: /" + interaction.commandName)
                 const command = this.interactions.slashCommands.get(interaction.commandName);
                 if (command) await command.execute(interaction);
             }
@@ -138,10 +85,60 @@ class MiauClient extends Client {
             }
         });
 
-        this.on("messageCreate", msg => {
+        this.on("messageCreate", async (msg) => {
             this.events.messages?.created?.forEach(e => e.execute(msg));
-            if (!msg.content) return
-            if (!msg.content.startsWith(this.params.defaultPrefix)) return
+
+            if (!msg.content || msg.author?.bot) return;
+
+            const content = msg.content;
+            let usedPrefix: string | undefined;
+            if (this.params.replyToMention && this.user) {
+                const mentionRe = new RegExp(`^<@!?${this.user.id}>\\s*`);
+                const m = content.match(mentionRe);
+                if (m) usedPrefix = m[0];
+            }
+
+            if (!usedPrefix && this.params.regExpPrefix) {
+                const m = content.match(this.params.regExpPrefix);
+                if (m && m.index === 0) usedPrefix = m[0];
+            }
+
+            if (!usedPrefix && content.startsWith(this.params.defaultPrefix)) {
+                usedPrefix = this.params.defaultPrefix;
+            }
+
+            if (!usedPrefix) return;
+
+            const body = content.slice(usedPrefix.length).trim();
+            if (!body) return;
+
+            const [rawName] = body.split(/\s+/);
+            if (!rawName) return;
+
+            const nameLower = rawName.toLowerCase();
+            const command =
+                this.interactions.message.get(rawName) ??
+                this.interactions.message.get(nameLower);
+
+            if (!command) return;
+
+            this.utils.console.log(["commandExecutionLog"], `Nueva ejecución de msg-cmd: ${rawName}`);
+
+            try {
+                await command.execute(msg as OmitPartialGroupDMChannel<Message<boolean>>);
+            } catch (err) {
+                const errorId =
+                    this.utils.errorUtils?.newErrorId?.() ?? `E-${Date.now().toString(36)}`;
+                const payload = this.utils.errorUtils?.redact
+                    ? this.utils.errorUtils.redact(this.utils.errorUtils.serializeError(err))
+                    : err;
+
+                this.utils.console.error(["commandExecutionError"], `[$${rawName}] Error de ejecución`, payload);
+
+                try {
+                    await msg.reply(`❌ Ha ocurrido un error al ejecutar \`$${rawName}\`. (ID: ${errorId})`);
+                } catch { }
+            }
         });
 
         this.on("messageDelete", msg => {
@@ -220,6 +217,134 @@ class MiauClient extends Client {
         });
     }
 
+    private isMiauEvent(obj: any): boolean {
+        return !!obj && typeof obj === "object" && typeof obj.execute === "function";
+    }
+
+    private extractRoutesFromEvent(ev: any): string[] {
+        // Preferimos métodos explícitos si existen
+        if (typeof ev.getRoutes === "function") {
+            const r = ev.getRoutes();
+            if (Array.isArray(r)) return r.filter((x) => typeof x === "string");
+            if (typeof r === "string") return [r];
+        }
+        if (typeof ev.getTargets === "function") {
+            const r = ev.getTargets();
+            if (Array.isArray(r)) return r.filter((x) => typeof x === "string");
+            if (typeof r === "string") return [r];
+        }
+        if (typeof ev.getExecutionMap === "function") {
+            const m = ev.getExecutionMap();
+            if (m && typeof m === "object") return Object.keys(m);
+        }
+
+        // Busca propiedades típicas que pueda haber guardado setExecution
+        const candidates: string[] = [];
+        const re = /^(bot|guild|users|messages)(\.[A-Za-z][A-Za-z0-9]*)*$/;
+
+        const scan = (val: any) => {
+            if (typeof val === "string" && re.test(val)) candidates.push(val);
+            else if (Array.isArray(val)) val.forEach(scan);
+            else if (val && typeof val === "object") {
+                for (const v of Object.values(val)) scan(v);
+            }
+        };
+
+        for (const key of Object.getOwnPropertyNames(ev)) {
+            try { scan((ev as any)[key]); } catch { }
+        }
+
+        // Eliminar duplicados
+        return [...new Set(candidates)];
+    }
+
+    private pushEventAtDotPath(dotPath: string, handler: any): void {
+        const parts = dotPath.split(".").filter(Boolean); // e.g. ["messages","edited"]
+        if (!parts.length) return;
+
+        let cursor: any = this.events;
+        for (let i = 0; i < parts.length - 1; i++) {
+            const k = parts[i]!;
+            if (!cursor[k] || typeof cursor[k] !== "object") cursor[k] = {};
+            cursor = cursor[k];
+        }
+        const leaf = parts[parts.length - 1]!;
+        if (!Array.isArray(cursor[leaf])) cursor[leaf] = [];
+        cursor[leaf].push(handler);
+    }
+
+    private async loadEvents(): Promise<void> {
+        const basePath = path.resolve(this.params.eventsFolder);
+
+        const importFile = async (filePath: string) => {
+            const fileUrl = pathToFileURL(filePath).href;
+            const mod = await import(fileUrl);
+            // Acepta default y nombrados, y también objetos con default dentro
+            return Object.values(mod).flatMap((v) =>
+                typeof v === "object" && v !== null && "default" in (v as any)
+                    ? Object.values(v as any)
+                    : [v]
+            );
+        };
+
+        const loadDir = async (dir: string): Promise<void> => {
+            const entries = await fs.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+
+                if (entry.isDirectory()) {
+                    await loadDir(fullPath);
+                    continue;
+                }
+
+                if (
+                    !entry.name.match(/\.(js|ts)$/) ||
+                    entry.name.endsWith(".d.ts") ||
+                    entry.name.endsWith(".d.js")
+                ) continue;
+
+                try {
+                    const exported = await importFile(fullPath);
+                    for (const ex of exported) {
+                        const candidates = (ex && typeof ex === "object" && "default" in (ex as any))
+                            ? [(ex as any).default]
+                            : [ex];
+
+                        for (const inst of candidates) {
+                            if (!this.isMiauEvent(inst)) continue;
+
+                            const routes = this.extractRoutesFromEvent(inst);
+                            if (routes.length) {
+                                for (const r of routes) {
+                                    this.pushEventAtDotPath(r, inst);
+                                    this.utils.console.info(["interactionBuildLog"], `+ Evento (ruta): ${r}`);
+                                }
+                                continue;
+                            }
+
+                            const rel = path.relative(basePath, fullPath).replace(/\\/g, "/");
+                            const noext = rel.replace(/\.(js|ts)$/, "");
+                            const segs = noext.split("/").filter(Boolean); // e.g. ["messages","edited"]
+
+                            if (segs.length >= 2) {
+                                const dot = segs.join(".");
+                                this.pushEventAtDotPath(dot, inst);
+                                this.utils.console.info(["interactionBuildLog"], `+ Evento (fs): ${dot}`);
+                            } else {
+                                this.utils.console.warning(["interactionBuildWarn"], `Evento ignorado (no se pudo deducir ruta): ${fullPath}`);
+                            }
+                        }
+                    }
+                } catch (err) {
+                    this.utils.console.error(["interactionBuildError"], `Error al importar evento ${fullPath}: ` + err);
+                }
+            }
+        };
+
+        await loadDir(basePath);
+    }
+
+
     refreshInteractions = async (): Promise<void> => {
         const basePath = path.resolve(this.params.interactionsFolder);
 
@@ -283,7 +408,7 @@ class MiauClient extends Client {
                         }
                     }
                 } catch (err) {
-                    this.utils.console.error(["interactionBuildError"], `Error al importar ${fullPath}:`+err);
+                    this.utils.console.error(["interactionBuildError"], `Error al importar ${fullPath}:` + err);
                 }
             }
         };
@@ -291,20 +416,20 @@ class MiauClient extends Client {
         try {
             await loadFiles(basePath);
             await deployCommands(this);
-            this.utils.console.success(["interactionBuildLog"], "Interacciones cargadas desde "+basePath);
+            this.utils.console.success(["interactionBuildLog"], "Interacciones cargadas desde " + basePath);
         } catch (err) {
-            this.utils.console.error(["interactionBuildError"], "Error cargando interacciones: "+err);
+            this.utils.console.error(["interactionBuildError"], "Error cargando interacciones: " + err);
         }
     };
 
     interactionBuild = {
-        button: (name: string): ((data?:MiauButtonBuildData) => ButtonBuilder)|undefined => {
+        button: (name: string): ((data?: MiauButtonBuildData) => ButtonBuilder) | undefined => {
             let button = this.interactions.buttons.get(name)
             if (typeof button == "undefined") throw new Error("Interacción no reconocida")
             try {
                 return button.build
             } catch (e) {
-                throw new Error("Error montando el comando: "+e)
+                throw new Error("Error montando el comando: " + e)
             }
         }
     }

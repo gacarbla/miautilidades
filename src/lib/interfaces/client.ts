@@ -1,166 +1,95 @@
+// Ajusta la ruta:
+
+import MiauEvent from "../models/event";
+
+// Hoja: lista de manejadores o undefined
+export type EventList = MiauEvent[] | undefined;
+
+// Mapped type para bloques simples: claves -> MiauEvent[] | undefined, y el bloque puede omitirse
+type Handlers<K extends string> = Partial<Record<K, EventList>>;
+
+// ── Uniones de claves por bloque (útil para autocompletado y reutilización)
+export type BotTopKeys = "join" | "leave";
+
+export type GuildInviteKeys = "added" | "removed" | "updated";
+export type GuildEmojiKeys = "added" | "removed" | "updated";
+export type GuildStickerKeys = "added" | "removed" | "updated";
+export type GuildBotKeys = "newGuild" | "rejoinGuild" | "leaveGuild" | "ban" | "unban" | "restrict" | "unrestrict" | "newNotification";
+export type GuildMemberKeys = "join" | "leave" | "botJoin" | "botLeave" | "avatarUpdate" | "serverAvatarUpdate" | "nicknameUpdate" | "displayNameUpdate" | "usernameUpdate" | "giveRole" | "removeRole";
+export type GuildRoleKeys = "create" | "update" | "delete";
+export type GuildChannelKeys = "create" | "update" | "delete";
+export type GuildStaffKeys = "add" | "remove" | "upgrade" | "downgrade" | "suspiciusActivity" | "goodJob";
+export type GuildDiscordAutomodKeys = "messageBlocked" | "usernameBlocked";
+export type GuildBotAutomodIAKeys = "enabled" | "disabled" | "messageBlocked" | "suspiciusMessage" | "suspiciusActivity";
+export type GuildBotAutomodKeys = "enabled" | "disabled" | "suspiciusActivity";
+export type GuildWebhookKeys = "create" | "update" | "delete";
+export type GuildSanctionKeys = "ban" | "unban" | "warn" | "txtMute" | "vcMute" | "globalMute" | "txtUnmute" | "vcUnmute" | "globalUnmute" | "softban" | "kick" | "tempban" | "removeSanction";
+export type GuildModerationKeys = "messageDeleted" | "bulkMessageDeleted";
+
+export type UserProfileKeys = "avatarUpdate" | "usernameUpdate" | "displayNameUpdate" | "nicknameUpdate" | "serverAvatarUpdate";
+export type UserMemberKeys = "join" | "leave" | "giveRole" | "removeRole";
+export type UserGuildBanKeys = "banned" | "failedBan" | "unbanned";
+export type UserGuildKickKeys = "kicked" | "failedKick" | "joinAfterKick";
+export type UserVoiceKeys = "join" | "leave" | "disconnect" | "move" | "moved" | "muted" | "unmuted" | "deafened" | "undeafened" | "serverMuted" | "serverUnmuted" | "serverDeafened" | "serverUndeafened" | "startVideo" | "endVideo" | "startStreaming" | "endStreaming";
+
+export type MessageKeys = "created" | "deleted" | "edited";
+
+// ── Bloques tipados
+
 export interface MiauClientEventsObject {
-    bot?: {
-        join: any[]|undefined;
-        leave: any[]|undefined;
-    };
+    bot?: Handlers<BotTopKeys>;
+
     guild?: {
-        nameUpdate: any[]|undefined;
-        descriptionUpdate: any[]|undefined;
-        otherUpdates: any[]|undefined;
-        invite?: {
-            added: any[]|undefined;
-            removed: any[]|undefined;
-            updated: any[]|undefined;
-        }
-        emoji?: {
-            added: any[]|undefined;
-            removed: any[]|undefined;
-            updated: any[]|undefined;
-        }
-        sticker?: {
-            added: any[]|undefined;
-            removed: any[]|undefined;
-            updated: any[]|undefined;
-        }
-        bot?: {
-            newGuild: any[]|undefined;
-            rejoinGuild: any[]|undefined;
-            leaveGuild: any[]|undefined;
-            ban: any[]|undefined;
-            unban: any[]|undefined;
-            restrict: any[]|undefined;
-            unrestrict: any[]|undefined;
-            newNotification: any[]|undefined;
-        }
-        members?: {
-            join: any[]|undefined;
-            leave: any[]|undefined;
-            botJoin: any[]|undefined;
-            botLeave: any[]|undefined;
-            avatarUpdate: any[]|undefined;
-            serverAvatarUpdate: any[]|undefined;
-            nicknameUpdate: any[]|undefined;
-            displayNameUpdate: any[]|undefined;
-            usernameUpdate: any[]|undefined;
-            giveRole: any[]|undefined;
-            removeRole: any[]|undefined;
-        }
-        roles?: {
-            create: any[]|undefined;
-            update: any[]|undefined;
-            delete: any[]|undefined;
-        }
-        channels?: {
-            create: any[]|undefined;
-            update: any[]|undefined;
-            delete: any[]|undefined;
-        }
-        staff?: {
-            add: any[]|undefined;
-            remove: any[]|undefined;
-            upgrade: any[]|undefined;
-            downgrade: any[]|undefined;
-            suspiciusActivity: any[]|undefined;
-            goodJob: any[]|undefined;
-        }
-        discordAutomod?: {
-            messageBlocked: any[]|undefined;
-            usernameBlocked: any[]|undefined;
-        }
+        nameUpdate?: EventList;
+        descriptionUpdate?: EventList;
+        otherUpdates?: EventList;
+
+        invite?: Handlers<GuildInviteKeys>;
+        emoji?: Handlers<GuildEmojiKeys>;
+        sticker?: Handlers<GuildStickerKeys>;
+
+        bot?: Handlers<GuildBotKeys>;
+
+        members?: Handlers<GuildMemberKeys>;
+
+        roles?: Handlers<GuildRoleKeys>;
+        channels?: Handlers<GuildChannelKeys>;
+        staff?: Handlers<GuildStaffKeys>;
+
+        discordAutomod?: Handlers<GuildDiscordAutomodKeys>;
+
         botAutomod?: {
-            ia?: {
-                enabled: any[]|undefined;
-                disabled: any[]|undefined;
-                messageBlocked: any[]|undefined;
-                suspiciusMessage: any[]|undefined;
-                suspiciusActivity: any[]|undefined;
-            }
-            enabled: any[]|undefined;
-            disabled: any[]|undefined;
-            suspiciusActivity: any[]|undefined;
-        }
-        webhooks?: {
-            create: any[]|undefined;
-            update: any[]|undefined;
-            delete: any[]|undefined;
-        }
-        sanctions?: {
-            ban: any[]|undefined;
-            unban: any[]|undefined;
-            warn: any[]|undefined;
-            txtMute: any[]|undefined;
-            vcMute: any[]|undefined;
-            globalMute: any[]|undefined;
-            txtUnmute: any[]|undefined;
-            vcUnmute: any[]|undefined;
-            globalUnmute: any[]|undefined;
-            softban: any[]|undefined;
-            kick: any[]|undefined;
-            tempban: any[]|undefined;
-            removeSanction: any[]|undefined;
-        }
-        moderation?: {
-            messageDeleted: any[]|undefined;
-            bulkMessageDeleted: any[]|undefined;
-        }
-    },
-    users?: {
-        profile?: {
-            avatarUpdate: any[]|undefined;
-            usernameUpdate: any[]|undefined;
-            displayNameUpdate: any[]|undefined;
-            nicknameUpdate: any[]|undefined;
-            serverAvatarUpdate: any[]|undefined;
-        },
-        member?: {
-            join: any[]|undefined;
-            leave: any[]|undefined;
-            giveRole: any[]|undefined;
-            removeRole: any[]|undefined;
-        },
-        guildBan?: {
-            banned: any[]|undefined;
-            failedBan: any[]|undefined;
-            unbanned: any[]|undefined;
-        },
-        guildKick?: {
-            kicked: any[]|undefined;
-            failedKick: any[]|undefined;
-            joinAfterKick: any[]|undefined;
-        },
-        voice?: {
-            join: any[]|undefined;
-            leave: any[]|undefined;
-            disconnect: any[]|undefined;
-            move: any[]|undefined;
-            moved: any[]|undefined;
-            muted: any[]|undefined;
-            unmuted: any[]|undefined;
-            deafened: any[]|undefined;
-            undeafened: any[]|undefined;
-            serverMuted: any[]|undefined;
-            serverUnmuted: any[]|undefined;
-            serverDeafened: any[]|undefined;
-            serverUndeafened: any[]|undefined;
-            startVideo: any[]|undefined;
-            endVideo: any[]|undefined;
-            startStreaming: any[]|undefined;
-            endStreaming: any[]|undefined;
+            ia?: Handlers<GuildBotAutomodIAKeys>;
+            // Hojas directas del bloque botAutomod:
+            enabled?: EventList;
+            disabled?: EventList;
+            suspiciusActivity?: EventList;
         };
+
+        webhooks?: Handlers<GuildWebhookKeys>;
+        sanctions?: Handlers<GuildSanctionKeys>;
+        moderation?: Handlers<GuildModerationKeys>;
     };
-    messages?: {
-        created: any[]|undefined;
-        deleted: any[]|undefined;
-        edited: any[]|undefined;
+
+    users?: {
+        profile?: Handlers<UserProfileKeys>;
+        member?: Handlers<UserMemberKeys>;
+        guildBan?: Handlers<UserGuildBanKeys>;
+        guildKick?: Handlers<UserGuildKickKeys>;
+        voice?: Handlers<UserVoiceKeys>;
     };
+
+    messages?: Handlers<MessageKeys>;
 }
 
+// Opciones (sin cambios)
 export interface MiauClientOptions {
-    interactionsFolder: string
-    indexedFileExtensions: string[]
-    defaultPrefix: string
-    regExpPrefix: RegExp
-    replyToMention: boolean
-    ignoredFolderNames?: string[]
-    ignoredFileNames?: string[]
+    interactionsFolder: string;
+    eventsFolder: string;
+    indexedFileExtensions: string[];
+    defaultPrefix: string;
+    regExpPrefix: RegExp;
+    replyToMention: boolean;
+    ignoredFolderNames?: string[];
+    ignoredFileNames?: string[];
 }

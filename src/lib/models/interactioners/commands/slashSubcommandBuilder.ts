@@ -9,10 +9,10 @@ import Preconditions from "../../preconditions";
 import { ParamsFrom } from "../../../types/slashCommands";
 import { SlashParamTypes } from "../../../enum/interactions";
 
-type SlashCommandParamType = MiauSlashCommandParam["type"]; // = SlashParamType | SlashParamTypes
+type SlashCommandParamType = MiauSlashCommandParam["type"];
 
 function toDiscordOptionType(t: SlashCommandParamType): ApplicationCommandOptionType {
-    // Soportar strings
+
     if (typeof t === "string") {
         switch (t) {
             case "LETTER":
@@ -31,7 +31,7 @@ function toDiscordOptionType(t: SlashCommandParamType): ApplicationCommandOption
                 throw new Error(`Tipo de slash no soportado: ${String(t)}`);
         }
     }
-    // Soportar enum (numérico)
+
     switch (t) {
         case SlashParamTypes.LETTER:
         case SlashParamTypes.WORD:
@@ -153,7 +153,6 @@ class MiauSlashSubcommandBuilder<
         return this;
     }
 
-    // Inmutable: amplía TParams por customId (o key explícita)
     addParam<const P extends MiauSlashCommandParam & { customId: string }>(
         param: P
     ): MiauSlashSubcommandBuilder<TParams & { [K in P["customId"]]: P }>;
@@ -202,12 +201,10 @@ class MiauSlashSubcommandBuilder<
         return Object.values(this.params);
     }
 
-    // helper opcional para legibilidad
     private isMemberType(t: MiauSlashCommandParam["type"]): boolean {
         return (typeof t === "string" ? t === "MEMBER" : t === SlashParamTypes.MEMBER);
     }
 
-    // --- Resuelve params con tipos correctos según tu DSL ---
     resolveParams(interaction: ChatInputCommandInteraction): ParamsFrom<TParams> {
         const out: Record<string, unknown> = {};
         const entries = Object.entries(this.params) as [keyof TParams & string, TParams[keyof TParams]][];
@@ -216,7 +213,6 @@ class MiauSlashSubcommandBuilder<
             const required = !!p.required;
             const t = p.type;
 
-            // Normalizamos a métodos de discord.js según tu tipo
             const discordType = toDiscordOptionType(t);
             switch (discordType) {
                 case ApplicationCommandOptionType.String: {
@@ -343,7 +339,6 @@ class MiauSlashSubcommandBuilder<
                 required: param.required ?? false,
             };
 
-            // Sólo choices para tipos de texto
             if (isTextType(param.type) && "choices" in param && Array.isArray((param as any).choices)) {
                 base.choices = (param as any).choices;
             }

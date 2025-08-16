@@ -17,7 +17,6 @@ class MiauSlashSubcommandgroupBuilder<
 
     private console = client.utils.console;
 
-    // Estado tipado
     private subcommands: TSubs = {} as TSubs;
     name: string | undefined = undefined;
     description: string | undefined = undefined;
@@ -51,10 +50,6 @@ class MiauSlashSubcommandgroupBuilder<
         return this;
     }
 
-    /**
-     * Añade un subcomando (builder function). Usa el `name` del subcomando como clave.
-     * Mantiene tu API actual y además lo guarda en un Record tipado para autocompletado.
-     */
     addSubcommand(
         s: (subcommand: MiauSlashSubcommandBuilder) => MiauSlashSubcommandBuilder
     ): this {
@@ -75,12 +70,10 @@ class MiauSlashSubcommandgroupBuilder<
         return this;
     }
 
-    // Acceso tipado (autocompletado por nombre de subcomando)
     getSubcommands(): TSubs {
         return this.subcommands;
     }
 
-    // Helper para iterar/validar como array
     getSubcommandsArray(): MiauSlashSubcommandBuilder[] {
         return Object.values(this.subcommands);
     }
@@ -102,7 +95,6 @@ class MiauSlashSubcommandgroupBuilder<
         const allSubsValid = arr.every((sub) => sub.test());
         const countOk = arr.length >= 1 && arr.length <= 25;
 
-        // unicidad por nombre
         const noDup = new Set(arr.map(s => s.name)).size === arr.length;
 
         return nameOk && descOk && allSubsValid && countOk && noDup;
@@ -117,7 +109,7 @@ class MiauSlashSubcommandgroupBuilder<
         return {
             name: this.name!.toLowerCase(),
             description: this.description!,
-            type: 2, // Subcommand Group
+            type: 2,
             options: this.getSubcommandsArray().map((s) => s.toJSON())
         };
     }
